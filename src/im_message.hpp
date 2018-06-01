@@ -1,27 +1,30 @@
 //
-// chat_message.hpp
+// im_message.hpp
 // ~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2018 by Mauro Sergio Ferreira Brasil
+//
+// Based on "chat_message.cpp" with Copyright (c) 2013-2015 by Christopher M. 
+// Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef CHAT_MESSAGE_HPP
-#define CHAT_MESSAGE_HPP
+#ifndef IM_MESSAGE_HPP
+#define IM_MESSAGE_HPP
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-class chat_message
+class im_message
 {
 public:
   enum { header_length = 4 };
   enum { max_body_length = 512 };
 
-  chat_message()
+  im_message()
     : body_length_(0)
   {
   }
@@ -88,5 +91,5 @@ private:
   std::size_t body_length_;
 };
 
-#endif // CHAT_MESSAGE_HPP
+#endif // IM_MESSAGE_HPP
 

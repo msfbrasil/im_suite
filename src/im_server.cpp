@@ -1,8 +1,11 @@
 //
-// chat_server.cpp
+// im_server.cpp
 // ~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2018 by Mauro Sergio Ferreira Brasil
+//
+// Based on "chat_server.cpp" with Copyright (c) 2013-2015 by Christopher M. 
+// Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,14 +19,14 @@
 #include <set>
 #include <utility>
 #include <boost/asio.hpp>
-#include "chat_message.hpp"
-#include "chat_message_processor.hpp"
+#include "im_message.hpp"
+#include "im_message_io_handler.hpp"
 
 using boost::asio::ip::tcp;
 
 //----------------------------------------------------------------------
 
-typedef std::deque<chat_message> chat_message_queue;
+typedef std::deque<im_message> im_message_queue;
 
 //----------------------------------------------------------------------
 
@@ -31,7 +34,7 @@ class chat_participant
 {
 public:
   virtual ~chat_participant() {}
-  virtual void deliver(const chat_message& msg) = 0;
+  virtual void deliver(const im_message& msg) = 0;
 };
 
 typedef std::shared_ptr<chat_participant> chat_participant_ptr;
@@ -53,7 +56,7 @@ public:
     participants_.erase(participant);
   }
 
-  void deliver(const chat_message& msg)
+  void deliver(const im_message& msg)
   {
     recent_msgs_.push_back(msg);
     while (recent_msgs_.size() > max_recent_msgs)
@@ -66,36 +69,36 @@ public:
 private:
   std::set<chat_participant_ptr> participants_;
   enum { max_recent_msgs = 100 };
-  chat_message_queue recent_msgs_;
+  im_message_queue recent_msgs_;
 };
 
 //----------------------------------------------------------------------
 
-class chat_session
+class im_session
   : public chat_participant,
-    public std::enable_shared_from_this<chat_session>,
-    public chat_message_processor_callback
+    public std::enable_shared_from_this<im_session>,
+    public im_message_io_handler_callback
 {
 public:
-  chat_session(tcp::socket socket, chat_room& room)
+  im_session(tcp::socket socket, chat_room& room)
     : socket_ptr_(std::make_shared<tcp::socket>(std::move(socket))),
       room_(room),
-      chat_message_processor_(socket_ptr_)
+      im_message_io_handler_(socket_ptr_)
   {
   }
 
   void start()
   {
     room_.join(shared_from_this());
-    chat_message_processor_.start(shared_from_this());
+    im_message_io_handler_.start(shared_from_this());
   }
 
-  void deliver(const chat_message& msg)
+  void deliver(const im_message& msg)
   {
-    chat_message_processor_.write(msg);
+    im_message_io_handler_.write(msg);
   }
 
-  void on_message_received(const chat_message& msg)
+  void on_message_received(const im_message& msg)
   {
     std::cout.write("Received: ", 10);
     std::cout.write(msg.body(), msg.body_length());
@@ -111,16 +114,16 @@ public:
 private:
 
   socket_ptr socket_ptr_;
-  chat_message_processor chat_message_processor_;
+  im_message_io_handler im_message_io_handler_;
   chat_room& room_;
 };
 
 //----------------------------------------------------------------------
 
-class chat_server
+class im_server
 {
 public:
-  chat_server(boost::asio::io_service& io_service,
+  im_server(boost::asio::io_service& io_service,
       const tcp::endpoint& endpoint)
     : acceptor_(io_service, endpoint),
       socket_(io_service)
@@ -136,7 +139,7 @@ private:
         {
           if (!ec)
           {
-            std::make_shared<chat_session>(std::move(socket_), room_)->start();
+            std::make_shared<im_session>(std::move(socket_), room_)->start();
           }
 
           do_accept();
@@ -156,13 +159,13 @@ int main(int argc, char* argv[])
   {
     if (argc < 2)
     {
-      std::cerr << "Usage: chat_server <port> [<port> ...]\n";
+      std::cerr << "Usage: im_server <port> [<port> ...]\n";
       return 1;
     }
 
     boost::asio::io_service io_service;
 
-    std::list<chat_server> servers;
+    std::list<im_server> servers;
     for (int i = 1; i < argc; ++i)
     {
       tcp::endpoint endpoint(tcp::v4(), std::atoi(argv[i]));

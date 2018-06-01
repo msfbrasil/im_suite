@@ -3,12 +3,12 @@ CC := g++ # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 SRCDIR := src
 BUILDDIR := build
-TARGET1 := bin/chat_client
-TARGET2 := bin/chat_server
+TARGET1 := bin/im_client
+TARGET2 := bin/im_server
 
 SRCEXT := cpp
-OBJECTS1 := $(BUILDDIR)/chat_client.o
-OBJECTS2 := $(BUILDDIR)/chat_server.o
+OBJECTS1 := $(BUILDDIR)/im_client.o
+OBJECTS2 := $(BUILDDIR)/im_server.o
 CFLAGS := -std=c++11
 LIB1 := -lboost_system -lboost_thread -lboost_serialization -lpthread
 LIB2 := -lboost_system -lboost_thread -lboost_serialization

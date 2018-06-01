@@ -1,8 +1,11 @@
 //
-// chat_client.cpp
+// im_client.cpp
 // ~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2018 by Mauro Sergio Ferreira Brasil
+//
+// Based on "chat_client.cpp" with Copyright (c) 2013-2015 by Christopher M. 
+// Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,24 +16,24 @@
 #include <iostream>
 #include <thread>
 #include <boost/asio.hpp>
-#include "chat_message.hpp"
-#include "chat_message_processor.hpp"
+#include "im_message.hpp"
+#include "im_message_io_handler.hpp"
 
 using boost::asio::ip::tcp;
 
-typedef std::deque<chat_message> chat_message_queue;
+typedef std::deque<im_message> im_message_queue;
 
-class chat_client 
-    : public std::enable_shared_from_this<chat_client>, 
-      public chat_message_processor_callback
+class im_client 
+    : public std::enable_shared_from_this<im_client>, 
+      public im_message_io_handler_callback
 {
 public:
-  chat_client(boost::asio::io_service& io_service,
+  im_client(boost::asio::io_service& io_service,
       tcp::resolver::iterator endpoint_iterator)
     : io_service_(io_service),
       socket_ptr_(std::make_shared<tcp::socket>(io_service)),
       endpoint_iterator_(endpoint_iterator),
-      chat_message_processor_(socket_ptr_)
+      im_message_io_handler_(socket_ptr_)
   {
   }
 
@@ -39,16 +42,16 @@ public:
     do_connect(endpoint_iterator_);
   }
 
-  void write(const chat_message& msg)
+  void write(const im_message& msg)
   {
     io_service_.post(
         [this, msg]()
         {
-          chat_message_processor_.write(msg);
+          im_message_io_handler_.write(msg);
         });
   }
 
-  void on_message_received(const chat_message& msg)
+  void on_message_received(const im_message& msg)
   {
     std::cout.write(msg.body(), msg.body_length());
     std::cout << "\n";
@@ -72,7 +75,7 @@ private:
         {
           if (!ec)
           {
-            chat_message_processor_.start(shared_from_this());
+            im_message_io_handler_.start(shared_from_this());
           }
         });
   }
@@ -81,7 +84,7 @@ private:
   boost::asio::io_service& io_service_;
   socket_ptr socket_ptr_;
   tcp::resolver::iterator endpoint_iterator_;
-  chat_message_processor chat_message_processor_;
+  im_message_io_handler im_message_io_handler_;
 };
 
 int main(int argc, char* argv[])
@@ -90,7 +93,7 @@ int main(int argc, char* argv[])
   {
     if (argc != 3)
     {
-      std::cerr << "Usage: chat_client <host> <port>\n";
+      std::cerr << "Usage: im_client <host> <port>\n";
       return 1;
     }
 
@@ -99,22 +102,22 @@ int main(int argc, char* argv[])
     tcp::resolver resolver(io_service);
     auto endpoint_iterator = resolver.resolve({ argv[1], argv[2] });
 
-    auto chat_client_ptr = std::make_shared<chat_client>(io_service, endpoint_iterator);
-    chat_client_ptr->start_message_processing();
+    auto im_client_ptr = std::make_shared<im_client>(io_service, endpoint_iterator);
+    im_client_ptr->start_message_processing();
 
     std::thread t([&io_service](){ io_service.run(); });
 
-    char line[chat_message::max_body_length + 1];
-    while (std::cin.getline(line, chat_message::max_body_length + 1))
+    char line[im_message::max_body_length + 1];
+    while (std::cin.getline(line, im_message::max_body_length + 1))
     {
-      chat_message msg;
+      im_message msg;
       msg.body_length(std::strlen(line));
       std::memcpy(msg.body(), line, msg.body_length());
       msg.encode_header();
-      chat_client_ptr->write(msg);
+      im_client_ptr->write(msg);
     }
 
-    chat_client_ptr->close();
+    im_client_ptr->close();
     t.join();
   }
   catch (std::exception& e)
