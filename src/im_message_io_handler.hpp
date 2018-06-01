@@ -65,62 +65,80 @@ public:
 private:
   void do_read_header()
   {
-    auto callback(callback_ptr_);
-    boost::asio::async_read(*socket_ptr_,
-        boost::asio::buffer(read_msg_.data(), im_message::header_length),
-        [this, callback](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec && read_msg_.decode_header())
+    if ( !callback_ptr_)
+    {
+      std::cerr << "IM message IO handler must be set first!\n";
+    }
+    else {
+      auto callback(callback_ptr_);
+      boost::asio::async_read(*socket_ptr_,
+          boost::asio::buffer(read_msg_.data(), im_message::header_length),
+          [this, callback](boost::system::error_code ec, std::size_t /*length*/)
           {
-            do_read_body();
-          }
-          else
-          {
-            callback_ptr_->on_error(ec);
-          }
-        });
+            if (!ec && read_msg_.decode_header())
+            {
+              do_read_body();
+            }
+            else
+            {
+              callback_ptr_->on_error(ec);
+            }
+          });
+    }
   }
 
   void do_read_body()
   {
-    auto callback(callback_ptr_);
-    boost::asio::async_read(*socket_ptr_,
-        boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
-        [this, callback](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec)
+    if ( !callback_ptr_)
+    {
+      std::cerr << "IM message IO handler must be set first!\n";
+    }
+    else {
+      auto callback(callback_ptr_);
+      boost::asio::async_read(*socket_ptr_,
+          boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
+          [this, callback](boost::system::error_code ec, std::size_t /*length*/)
           {
-            callback_ptr_->on_message_received(read_msg_);
-            do_read_header();
-          }
-          else
-          {
-            callback_ptr_->on_error(ec);
-          }
-        });
+            if (!ec)
+            {
+              callback_ptr_->on_message_received(read_msg_);
+              do_read_header();
+            }
+            else
+            {
+              callback_ptr_->on_error(ec);
+            }
+          });
+    }
   }
 
   void do_write()
   {
-    auto callback(callback_ptr_);
-    boost::asio::async_write(*socket_ptr_,
-        boost::asio::buffer(write_msgs_.front().data(),
-          write_msgs_.front().length()),
-        [this, callback](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec)
+    if ( !callback_ptr_)
+    {
+      std::cerr << "IM message IO handler must be set first!\n";
+    }
+    else {
+      auto callback(callback_ptr_);
+      boost::asio::async_write(*socket_ptr_,
+          boost::asio::buffer(write_msgs_.front().data(),
+            write_msgs_.front().length()),
+          [this, callback](boost::system::error_code ec, std::size_t /*length*/)
           {
-            write_msgs_.pop_front();
-            if (!write_msgs_.empty())
+            if (!ec)
             {
-              do_write();
+              write_msgs_.pop_front();
+              if (!write_msgs_.empty())
+              {
+                do_write();
+              }
             }
-          }
-          else
-          {
-            callback_ptr_->on_error(ec);
-          }
-        });
+            else
+            {
+              callback_ptr_->on_error(ec);
+            }
+          });
+    }
   }
 
   socket_ptr socket_ptr_;
