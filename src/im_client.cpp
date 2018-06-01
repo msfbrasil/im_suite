@@ -39,7 +39,7 @@ im_client::im_client(boost::asio::io_service& io_service,
 // Public methods.
 //----------------------------------------------------------------------
 
-void im_client::start_message_handler()
+void im_client::start()
 {
   do_connect(endpoint_iterator_);
 }
@@ -53,6 +53,11 @@ void im_client::write(const im_message& msg)
       });
 }
 
+void im_client::stop()
+{
+  io_service_.post([this]() { socket_ptr_->close(); });
+}
+
 void im_client::on_message_received(const im_message& msg)
 {
   std::cout.write(msg.body(), msg.body_length());
@@ -64,11 +69,6 @@ void im_client::on_error(boost::system::error_code ec)
   std::cerr << "Communication error: " << ec.category().name() 
     << " -> " << ec.value() << "\n";
   socket_ptr_->close();
-}
-
-void im_client::close()
-{
-  io_service_.post([this]() { socket_ptr_->close(); });
 }
 
 //----------------------------------------------------------------------

@@ -12,7 +12,6 @@
 #define IM_MESSAGE_IO_HANDLER_HPP
 
 #include <cstdlib>
-#include <deque>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -22,8 +21,6 @@
 #include "im_message.hpp"
 
 using boost::asio::ip::tcp;
-
-typedef std::deque<im_message> im_message_queue;
 
 typedef std::shared_ptr<tcp::socket> socket_ptr;
 

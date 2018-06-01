@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     auto endpoint_iterator = resolver.resolve({ argv[1], argv[2] });
 
     auto im_client_ptr = std::make_shared<im_client>(io_service, endpoint_iterator);
-    im_client_ptr->start_message_handler();
+    im_client_ptr->start();
 
     std::thread t([&io_service](){ io_service.run(); });
 
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
       im_client_ptr->write(msg);
     }
 
-    im_client_ptr->close();
+    im_client_ptr->stop();
     t.join();
   }
   catch (std::exception& e)
