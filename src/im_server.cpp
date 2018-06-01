@@ -108,6 +108,8 @@ public:
 
   void on_error(boost::system::error_code ec)
   {
+    std::cerr << "Communication error: " << ec.category().name()
+      << " -> " << ec.value() << "\n";
     room_.leave(shared_from_this());
   }
 

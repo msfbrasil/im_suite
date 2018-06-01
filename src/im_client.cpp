@@ -37,7 +37,7 @@ public:
   {
   }
 
-  void start_message_processing()
+  void start_message_handler()
   {
     do_connect(endpoint_iterator_);
   }
@@ -59,6 +59,8 @@ public:
 
   void on_error(boost::system::error_code ec)
   {
+    std::cerr << "Communication error: " << ec.category().name() 
+      << " -> " << ec.value() << "\n";
     socket_ptr_->close();
   }
 
@@ -76,6 +78,11 @@ private:
           if (!ec)
           {
             im_message_io_handler_.start(shared_from_this());
+          }
+          else
+          {
+            std::cerr << "Error connecting to server: " << ec.category().name()
+              << " -> " << ec.value() << "\n";
           }
         });
   }
@@ -103,7 +110,7 @@ int main(int argc, char* argv[])
     auto endpoint_iterator = resolver.resolve({ argv[1], argv[2] });
 
     auto im_client_ptr = std::make_shared<im_client>(io_service, endpoint_iterator);
-    im_client_ptr->start_message_processing();
+    im_client_ptr->start_message_handler();
 
     std::thread t([&io_service](){ io_service.run(); });
 
