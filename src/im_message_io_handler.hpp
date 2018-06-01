@@ -8,6 +8,9 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#ifndef IM_MESSAGE_IO_HANDLER_HPP
+#define IM_MESSAGE_IO_HANDLER_HPP
+
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -128,4 +131,6 @@ private:
   im_message read_msg_;
   im_message_queue write_msgs_;
 };
+
+#endif // IM_MESSAGE_IO_HANDLER_HPP
 

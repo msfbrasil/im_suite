@@ -7,7 +7,7 @@ TARGET1 := bin/im_client
 TARGET2 := bin/im_server
 
 SRCEXT := cpp
-OBJECTS1 := $(BUILDDIR)/im_client.o
+OBJECTS1 := $(BUILDDIR)/client_main.o $(BUILDDIR)/im_client.o
 OBJECTS2 := $(BUILDDIR)/im_server.o
 CFLAGS := -std=c++11
 LIB1 := -lboost_system -lboost_thread -lboost_serialization -lpthread

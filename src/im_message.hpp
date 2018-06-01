@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <deque>
 
 class im_message
 {
@@ -90,6 +91,8 @@ private:
   char data_[header_length + max_body_length];
   std::size_t body_length_;
 };
+
+typedef std::deque<im_message> im_message_queue;
 
 #endif // IM_MESSAGE_HPP
 
