@@ -18,7 +18,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
 	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
-ALL: $(TARGET1) $(TARGET2)
+all: $(TARGET1) $(TARGET2)
 
 $(TARGET1): $(OBJECTS1)
 	@echo " Linking..."

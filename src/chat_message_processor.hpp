@@ -60,10 +60,10 @@ public:
 private:
   void do_read_header()
   {
-    auto self(callback_ptr_);
+    auto callback(callback_ptr_);
     boost::asio::async_read(*socket_ptr_,
         boost::asio::buffer(read_msg_.data(), chat_message::header_length),
-        [this, self](boost::system::error_code ec, std::size_t /*length*/)
+        [this, callback](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec && read_msg_.decode_header())
           {
@@ -78,10 +78,10 @@ private:
 
   void do_read_body()
   {
-    auto self(callback_ptr_);
+    auto callback(callback_ptr_);
     boost::asio::async_read(*socket_ptr_,
         boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
-        [this, self](boost::system::error_code ec, std::size_t /*length*/)
+        [this, callback](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
@@ -97,11 +97,11 @@ private:
 
   void do_write()
   {
-    auto self(callback_ptr_);
+    auto callback(callback_ptr_);
     boost::asio::async_write(*socket_ptr_,
         boost::asio::buffer(write_msgs_.front().data(),
           write_msgs_.front().length()),
-        [this, self](boost::system::error_code ec, std::size_t /*length*/)
+        [this, callback](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
