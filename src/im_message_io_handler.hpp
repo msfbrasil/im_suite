@@ -126,7 +126,7 @@ private:
             if (!ec)
             {
               callback_ptr_->on_message_received(read_msg_);
-              do_read_length();
+              do_read_type();
             }
             else
             {

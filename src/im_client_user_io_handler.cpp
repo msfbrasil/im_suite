@@ -119,7 +119,7 @@ void im_client_user_io_handler::process_command(
     }
     else if ( command.compare( QUIT_CMD ) == 0)
     {
-      building_msg_.fill_quit_msg( command.c_str() );
+      building_msg_.fill_disconnect_msg( command.c_str() );
       callback_ptr_->send_message( building_msg_ );
     }
     else

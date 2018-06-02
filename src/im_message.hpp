@@ -33,12 +33,7 @@ public:
   enum MessageTypes {
     CONNECT_MSG = 1,
     MESSAGE_MSG,
-    QUIT_MSG
-  };
-
-  enum MessageFields {
-    DST_NICK_NAME_FIELD = 1,
-    MESSAGE_FIELD
+    DISCONNECT_MSG
   };
 
   const std::string DEFAULT_SEPARATOR = "||";
@@ -123,7 +118,7 @@ public:
     std::strncat(type, data_, type_length);
     type_ = std::atoi(type);
     if ( (type_ != CONNECT_MSG) && (type_ != MESSAGE_MSG) 
-      && (type_ != QUIT_MSG) )
+      && (type_ != DISCONNECT_MSG) )
     {
       return false;
     }
@@ -157,9 +152,9 @@ public:
     encode_length();
   }
 
-  void fill_quit_msg( const char* command )
+  void fill_disconnect_msg( const char* command )
   {
-    type_ = QUIT_MSG;
+    type_ = DISCONNECT_MSG;
     value_length(std::strlen(command));
     std::memcpy(value(), command, std::strlen(command));
     encode_type();
