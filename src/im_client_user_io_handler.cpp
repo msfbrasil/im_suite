@@ -77,9 +77,9 @@ void im_client_user_io_handler::process_command(
         }
         else
         {
-          //callback_ptr_->connect();
+          callback_ptr_->connect();
           building_msg_.fill_connect_msg( destinatary.c_str() );
-          callback_ptr_->delivery_message( building_msg_ );
+          callback_ptr_->send_message( building_msg_ );
         }
       }
     }
@@ -120,7 +120,7 @@ void im_client_user_io_handler::process_command(
     else if ( command.compare( QUIT_CMD ) == 0)
     {
       building_msg_.fill_quit_msg( command.c_str() );
-      callback_ptr_->delivery_message( building_msg_ );
+      callback_ptr_->send_message( building_msg_ );
     }
     else
     {
@@ -128,7 +128,7 @@ void im_client_user_io_handler::process_command(
       {
         building_msg_.fill_message_msg( destinatary_nickname.c_str(), 
           command.c_str() );
-        callback_ptr_->delivery_message( building_msg_ );
+        callback_ptr_->send_message( building_msg_ );
 
         is_building_msg = false;
       }

@@ -32,11 +32,9 @@ int main(int argc, char* argv[])
 
     im_client_ptr im_client_ptr = std::make_shared<im_client>( 
       io_service, endpoint_iterator );
-    im_client_ptr->start();
+    //im_client_ptr->start();
     im_client_user_io_handler io_handler;
     io_handler.start( im_client_ptr );
-
-    std::thread t([&io_service](){ io_service.run(); });
 
     char line[im_message::max_message_length + 1];
     while (std::cin.getline(line, im_message::max_message_length + 1))
@@ -50,7 +48,6 @@ int main(int argc, char* argv[])
     }
 
     im_client_ptr->stop();
-    t.join();
   }
   catch (std::exception& e)
   {

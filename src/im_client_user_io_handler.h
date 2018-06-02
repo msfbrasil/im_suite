@@ -21,7 +21,7 @@ class im_client_user_io_handler_callback
 public:
   virtual ~im_client_user_io_handler_callback() {}
   virtual void connect() = 0;
-  virtual void delivery_message(const im_message& msg) = 0;
+  virtual void send_message(const im_message& msg) = 0;
 };
 
 typedef std::shared_ptr<im_client_user_io_handler_callback> im_client_user_io_handler_callback_ptr;

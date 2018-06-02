@@ -39,10 +39,10 @@ im_client::im_client(boost::asio::io_service& io_service,
 // Public methods.
 //----------------------------------------------------------------------
 
-void im_client::start()
-{
-  do_connect(endpoint_iterator_);
-}
+//void im_client::start()
+//{
+  //do_connect(endpoint_iterator_);
+//}
 
 //void im_client::write(const im_message& msg)
 //{
@@ -69,14 +69,18 @@ void im_client::on_error(boost::system::error_code ec)
   std::cerr << "Communication error: " << ec.category().name() 
     << " -> " << ec.value() << "\n";
   socket_ptr_->close();
+  io_service_run_thread_ptr->join();
 }
 
 void im_client::connect()
 {
   do_connect(endpoint_iterator_);
+
+  io_service_run_thread_ptr = std::make_shared<std::thread>(
+    [&](){ io_service_.run(); });
 }
 
-void im_client::delivery_message(const im_message& msg)
+void im_client::send_message(const im_message& msg)
 {
   io_service_.post(
       [this, msg]()
@@ -91,6 +95,7 @@ void im_client::delivery_message(const im_message& msg)
 
 void im_client::do_connect(tcp::resolver::iterator endpoint_iterator)
 {
+  /*
   boost::asio::async_connect(*socket_ptr_, endpoint_iterator,
       [this](boost::system::error_code ec, tcp::resolver::iterator)
       {
@@ -104,6 +109,17 @@ void im_client::do_connect(tcp::resolver::iterator endpoint_iterator)
             << " -> " << ec.value() << "\n";
         }
       });
+  */
+  boost::system::error_code ec;
+  boost::asio::connect(*socket_ptr_, endpoint_iterator, ec);
+  if (!ec)
+  {
+    im_message_io_handler_.start(shared_from_this());
+  }
+  else
+  {
+    std::cerr << "Error connecting to server: " << ec.category().name()
+      << " -> " << ec.value() << "\n";
+  }
 }
-
 
