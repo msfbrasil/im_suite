@@ -33,9 +33,11 @@ int main(int argc, char* argv[])
     tcp::resolver resolver(io_service);
     auto endpoint_iterator = resolver.resolve({ argv[1], argv[2] });
 
-    im_client_ptr im_client_ptr = std::make_shared<im_client>( 
-      io_service, endpoint_iterator );
     im_client_user_io_handler io_handler;
+
+    im_client_ptr im_client_ptr = std::make_shared<im_client>( 
+      io_service, endpoint_iterator, io_handler );
+
     io_handler.start( im_client_ptr );
 
     char line[im_message::max_message_length + 1];

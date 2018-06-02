@@ -23,11 +23,13 @@ using boost::asio::ip::tcp;
 //----------------------------------------------------------------------
 
 im_client::im_client(boost::asio::io_service& io_service,
-    tcp::resolver::iterator endpoint_iterator)
+    tcp::resolver::iterator endpoint_iterator, 
+    im_client_user_io_handler& client_user_io_handler)
   : io_service_(io_service),
     socket_ptr_(std::make_shared<tcp::socket>(io_service)),
     endpoint_iterator_(endpoint_iterator),
-    im_session_ptr_(std::make_shared<im_session>(socket_ptr_))
+    im_session_ptr_(std::make_shared<im_session>(socket_ptr_)),
+    client_user_io_handler_(client_user_io_handler)
 {
 }
 
@@ -43,15 +45,13 @@ void im_client::stop()
 void im_client::on_message_received(im_session_ptr im_session_ptr, 
   const im_message& msg)
 {
-  std::cout.write(msg.value(), msg.value_length());
-  std::cout << "\n";
+  client_user_io_handler_.print_message( msg );
 }
 
 void im_client::on_error(im_session_ptr im_session_ptr, 
   boost::system::error_code ec)
 {
-  std::cerr << "Communication error: " << ec.category().name() 
-    << " -> " << ec.value() << "\n";
+  client_user_io_handler_.print_error( "Communication error: ", ec );
   socket_ptr_->close();
 }
 
@@ -85,8 +85,7 @@ void im_client::do_connect(tcp::resolver::iterator endpoint_iterator)
   }
   else
   {
-    std::cerr << "Error connecting to server: " << ec.category().name()
-      << " -> " << ec.value() << "\n";
+    client_user_io_handler_.print_error( "Error connecting to server: ", ec );
   }
 }
 

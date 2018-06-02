@@ -25,7 +25,8 @@ class im_client
 {
 public:
   im_client(boost::asio::io_service& io_service,
-      tcp::resolver::iterator endpoint_iterator);
+      tcp::resolver::iterator endpoint_iterator, 
+      im_client_user_io_handler& client_user_io_handler);
 
   void stop();
 
@@ -48,6 +49,7 @@ private:
   boost::asio::io_service& io_service_;
   socket_ptr socket_ptr_;
   tcp::resolver::iterator endpoint_iterator_;
+  im_client_user_io_handler& client_user_io_handler_;
   im_session_ptr im_session_ptr_;
   std::thread io_service_thread;
 };

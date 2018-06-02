@@ -141,6 +141,18 @@ void im_client_user_io_handler::process_command(
   }
 }
 
+void im_client_user_io_handler::print_message(const im_message& msg)
+{
+  std::cout.write(msg.value(), msg.value_length());
+  std::cout << "\n";
+}
+
+void im_client_user_io_handler::print_error(const std::string prefix, 
+  boost::system::error_code ec)
+{
+  std::cerr << prefix << ec.category().name() << " -> " << ec.value() << "\n";
+}
+
 //----------------------------------------------------------------------
 // Private methods.
 //----------------------------------------------------------------------
@@ -170,11 +182,11 @@ void im_client_user_io_handler::print_help(bool with_intro)
      << "where \"<YOUR_NICK_NAME>\" must be replaced by your nickname.\n";
   std::cout << "\n";
   std::cout << MESSAGE_CMD << " : this command allows you to send a message" 
-     << " to a specifig destinatary at the sending messages server.\n";
+     << " to a specific destinatary at the sending messages server.\n";
   std::cout << "  Usage: \"" << MESSAGE_CMD << " <DESTINATION_NICK_NAME>\"," 
      << " where \"<DESTINATION_NICK_NAME>\" must be replaced by the nickname"
      << " of the person you want to send the message to.\n";
-  std::cout << "Everything that is typed after a \"" << MESSAGE_CMD << "\" "
+  std::cout << "  Everything that is typed after a \"" << MESSAGE_CMD << "\" "
     << "command is issued will be the message to be sent to the provided " 
     << "destinatary.\n";
   std::cout << "\n";

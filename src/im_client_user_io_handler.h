@@ -5,14 +5,15 @@
 // Copyright (c) 2018 by Mauro Sergio Ferreira Brasil
 //
 
-#ifndef IM_CLIENT_USER_IO_HANDLER_HPP
-#define IM_CLIENT_USER_IO_HANDLER_HPP
+#ifndef IM_CLIENT_USER_IO_HANDLER_H
+#define IM_CLIENT_USER_IO_HANDLER_H
 
 #include <cstdlib>
 #include <memory>
 #include <vector>
 #include <string>
 #include "im_message.hpp"
+#include <boost/asio.hpp>
 
 //----------------------------------------------------------------------
 
@@ -35,6 +36,8 @@ public:
 
   void start( im_client_user_io_handler_callback_ptr callback_ptr );
   void process_command( const std::string command );
+  void print_message(const im_message& msg);
+  void print_error(const std::string prefix, boost::system::error_code ec);
 
 private:
   void print_help( bool with_intro );
@@ -54,4 +57,4 @@ private:
   std::string destinatary_nickname;
 };
 
-#endif // IM_CLIENT_USER_IO_HANDLER_HPP
+#endif // IM_CLIENT_USER_IO_HANDLER_H
