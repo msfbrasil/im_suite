@@ -101,7 +101,7 @@ public:
   void on_message_received(const im_message& msg)
   {
     std::cout.write("Received: ", 10);
-    std::cout.write(msg.body(), msg.body_length());
+    std::cout.write(msg.value(), msg.value_length());
     std::cout << "\n";
     room_.deliver(msg);
   }

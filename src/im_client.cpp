@@ -44,14 +44,14 @@ void im_client::start()
   do_connect(endpoint_iterator_);
 }
 
-void im_client::write(const im_message& msg)
-{
-  io_service_.post(
-      [this, msg]()
-      {
-        im_message_io_handler_.write(msg);
-      });
-}
+//void im_client::write(const im_message& msg)
+//{
+  //io_service_.post(
+      //[this, msg]()
+      //{
+        //im_message_io_handler_.write(msg);
+      //});
+//}
 
 void im_client::stop()
 {
@@ -60,7 +60,7 @@ void im_client::stop()
 
 void im_client::on_message_received(const im_message& msg)
 {
-  std::cout.write(msg.body(), msg.body_length());
+  std::cout.write(msg.value(), msg.value_length());
   std::cout << "\n";
 }
 
@@ -69,6 +69,20 @@ void im_client::on_error(boost::system::error_code ec)
   std::cerr << "Communication error: " << ec.category().name() 
     << " -> " << ec.value() << "\n";
   socket_ptr_->close();
+}
+
+void im_client::connect()
+{
+  do_connect(endpoint_iterator_);
+}
+
+void im_client::delivery_message(const im_message& msg)
+{
+  io_service_.post(
+      [this, msg]()
+      {
+        im_message_io_handler_.write(msg);
+      });
 }
 
 //----------------------------------------------------------------------

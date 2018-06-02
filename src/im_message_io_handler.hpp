@@ -49,7 +49,7 @@ public:
   void start(im_message_io_handler_callback_ptr callback_ptr) 
   {
     callback_ptr_ = callback_ptr;
-    do_read_header();
+    do_read_type();
   }
 
   void write(const im_message& msg)
@@ -63,7 +63,7 @@ public:
   }
 
 private:
-  void do_read_header()
+  void do_read_type()
   {
     if ( !callback_ptr_)
     {
@@ -72,12 +72,12 @@ private:
     else {
       auto callback(callback_ptr_);
       boost::asio::async_read(*socket_ptr_,
-          boost::asio::buffer(read_msg_.data(), im_message::header_length),
+          boost::asio::buffer(read_msg_.data(), im_message::type_length),
           [this, callback](boost::system::error_code ec, std::size_t /*length*/)
           {
-            if (!ec && read_msg_.decode_header())
+            if (!ec && read_msg_.decode_type())
             {
-              do_read_body();
+              do_read_length();
             }
             else
             {
@@ -87,7 +87,7 @@ private:
     }
   }
 
-  void do_read_body()
+  void do_read_length()
   {
     if ( !callback_ptr_)
     {
@@ -96,13 +96,37 @@ private:
     else {
       auto callback(callback_ptr_);
       boost::asio::async_read(*socket_ptr_,
-          boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
+          boost::asio::buffer(read_msg_.header(), im_message::length_length),
+          [this, callback](boost::system::error_code ec, std::size_t /*length*/)
+          {
+            if (!ec && read_msg_.decode_length())
+            {
+              do_read_value();
+            }
+            else
+            {
+              callback_ptr_->on_error(ec);
+            }
+          });
+    }
+  }
+
+  void do_read_value()
+  {
+    if ( !callback_ptr_)
+    {
+      std::cerr << "IM message IO handler must be set first!\n";
+    }
+    else {
+      auto callback(callback_ptr_);
+      boost::asio::async_read(*socket_ptr_,
+          boost::asio::buffer(read_msg_.value(), read_msg_.value_length()),
           [this, callback](boost::system::error_code ec, std::size_t /*length*/)
           {
             if (!ec)
             {
               callback_ptr_->on_message_received(read_msg_);
-              do_read_header();
+              do_read_length();
             }
             else
             {
@@ -148,4 +172,3 @@ private:
 };
 
 #endif // IM_MESSAGE_IO_HANDLER_HPP
-
