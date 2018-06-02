@@ -7,9 +7,6 @@
 // Based on "chat_client.cpp" with Copyright (c) 2013-2015 by Christopher M. 
 // Kohlhoff (chris at kohlhoff dot com)
 //
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
 
 #include <cstdlib>
 #include <deque>
@@ -38,20 +35,6 @@ im_client::im_client(boost::asio::io_service& io_service,
 // Public methods.
 //----------------------------------------------------------------------
 
-//void im_client::start()
-//{
-  //do_connect(endpoint_iterator_);
-//}
-
-//void im_client::write(const im_message& msg)
-//{
-  //io_service_.post(
-      //[this, msg]()
-      //{
-        //im_message_io_handler_.write(msg);
-      //});
-//}
-
 void im_client::stop()
 {
   io_service_.post([this]() { socket_ptr_->close(); });
@@ -70,15 +53,13 @@ void im_client::on_error(im_session_ptr im_session_ptr,
   std::cerr << "Communication error: " << ec.category().name() 
     << " -> " << ec.value() << "\n";
   socket_ptr_->close();
-  io_service_run_thread_ptr->join();
 }
 
 void im_client::connect()
 {
   do_connect(endpoint_iterator_);
 
-  io_service_run_thread_ptr = std::make_shared<std::thread>(
-    [&](){ io_service_.run(); });
+  io_service_thread = std::thread([&](){ io_service_.run(); });
 }
 
 void im_client::send_message(const im_message& msg)
@@ -96,21 +77,6 @@ void im_client::send_message(const im_message& msg)
 
 void im_client::do_connect(tcp::resolver::iterator endpoint_iterator)
 {
-  /*
-  boost::asio::async_connect(*socket_ptr_, endpoint_iterator,
-      [this](boost::system::error_code ec, tcp::resolver::iterator)
-      {
-        if (!ec)
-        {
-          im_message_io_handler_.start(shared_from_this());
-        }
-        else
-        {
-          std::cerr << "Error connecting to server: " << ec.category().name()
-            << " -> " << ec.value() << "\n";
-        }
-      });
-  */
   boost::system::error_code ec;
   boost::asio::connect(*socket_ptr_, endpoint_iterator, ec);
   if (!ec)

@@ -4,6 +4,9 @@
 //
 // Copyright (c) 2018 by Mauro Sergio Ferreira Brasil
 //
+// Based on "chat_client.cpp" with Copyright (c) 2013-2015 by Christopher M. 
+// Kohlhoff (chris at kohlhoff dot com)
+//
 
 #include <cstdlib>
 #include <iostream>
@@ -32,18 +35,12 @@ int main(int argc, char* argv[])
 
     im_client_ptr im_client_ptr = std::make_shared<im_client>( 
       io_service, endpoint_iterator );
-    //im_client_ptr->start();
     im_client_user_io_handler io_handler;
     io_handler.start( im_client_ptr );
 
     char line[im_message::max_message_length + 1];
     while (std::cin.getline(line, im_message::max_message_length + 1))
     {
-      //im_message msg;
-      //msg.body_length(std::strlen(line));
-      //std::memcpy(msg.body(), line, msg.body_length());
-      //msg.encode_header();
-      //im_client_ptr->write(msg);
       io_handler.process_command( line );
     }
 

@@ -18,10 +18,6 @@ using boost::asio::ip::tcp;
 
 //----------------------------------------------------------------------
 
-typedef std::shared_ptr<std::thread> thread_ptr;
-
-//----------------------------------------------------------------------
-
 class im_client 
     : public std::enable_shared_from_this<im_client>, 
       public im_message_handler_callback, 
@@ -31,8 +27,6 @@ public:
   im_client(boost::asio::io_service& io_service,
       tcp::resolver::iterator endpoint_iterator);
 
-  //void start();
-  //void write(const im_message& msg);
   void stop();
 
   // Inherited from im_message_io_handler_callback.
@@ -55,7 +49,7 @@ private:
   socket_ptr socket_ptr_;
   tcp::resolver::iterator endpoint_iterator_;
   im_session_ptr im_session_ptr_;
-  thread_ptr io_service_run_thread_ptr;
+  std::thread io_service_thread;
 };
 
 //----------------------------------------------------------------------
