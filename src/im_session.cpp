@@ -28,16 +28,18 @@ im_session::im_session(socket_ptr socket_ptr)
 // Public methods.
 //----------------------------------------------------------------------
 
-void im_session::start(im_message_handler_callback_ptr callback_ptr)
+void im_session::start(im_session_handler_callback_ptr callback_ptr)
 {
   callback_ptr_ = callback_ptr;
   do_read_type();
 }
 
-void im_session::send_message(const im_message& msg)
+void im_session::send_message(im_message_ptr im_message_ptr)
 {
+  std::cout << "im_session::send_message -> Sending message...\n";
   bool write_in_progress = !write_msgs_.empty();
-  write_msgs_.push_back(msg);
+  std::cout << "Pushed back message: \"" << im_message_ptr->data() << "\"\n";
+  write_msgs_.push_back(im_message_ptr);
   if (!write_in_progress)
   {
     do_write();
@@ -55,6 +57,7 @@ void im_session::do_read_type()
     std::cerr << "IM message handler must be set first!\n";
   }
   else {
+    std::cout << "Reading type...\n";
     auto self(shared_from_this());
     boost::asio::async_read(*socket_ptr_,
         boost::asio::buffer(read_msg_.data(), im_message::type_length),
@@ -62,6 +65,7 @@ void im_session::do_read_type()
         {
           if (!ec && read_msg_.decode_type())
           {
+            std::cout << "Type is: " << read_msg_.type() << "\n";
             do_read_length();
           }
           else
@@ -79,6 +83,7 @@ void im_session::do_read_length()
     std::cerr << "IM message handler must be set first!\n";
   }
   else {
+    std::cout << "Reading length...\n";
     auto self(shared_from_this());
     boost::asio::async_read(*socket_ptr_,
         boost::asio::buffer(read_msg_.header(), im_message::length_length),
@@ -86,7 +91,16 @@ void im_session::do_read_length()
         {
           if (!ec && read_msg_.decode_length())
           {
-            do_read_value();
+            if (read_msg_.value_length() > 0)
+            {
+              std::cout << "Length: " << read_msg_.value_length() << "\n";
+              do_read_value();
+            }
+            else
+            {
+              callback_ptr_->on_message_received(self, read_msg_);
+              do_read_type();
+            }
           }
           else
           {
@@ -103,6 +117,7 @@ void im_session::do_read_value()
     std::cerr << "IM message handler must be set first!\n";
   }
   else {
+    std::cout << "Reading value...\n";
     auto self(shared_from_this());
     boost::asio::async_read(*socket_ptr_,
         boost::asio::buffer(read_msg_.value(), read_msg_.value_length()),
@@ -129,9 +144,12 @@ void im_session::do_write()
   }
   else {
     auto self(shared_from_this());
+    std::cout << "Preparing to send the message...\n";
+    std::cout << "Which is: \"" << write_msgs_.front()->data() << "\"\n";
+    std::cout << "Total size: \"" << write_msgs_.front()->length() << ", and value_length :" << write_msgs_.front()->value_length() << "\"\n";
     boost::asio::async_write(*socket_ptr_,
-        boost::asio::buffer(write_msgs_.front().data(),
-          write_msgs_.front().length()),
+        boost::asio::buffer(write_msgs_.front()->data(),
+          write_msgs_.front()->length()),
         [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)

@@ -69,17 +69,19 @@ void im_client_user_io_handler::process_command(
           std::cout << "\n";
         }
         else if ( destinatary.length() > 
-          building_msg_.max_destinatary_length )
+          im_message::max_destinatary_length )
         {
           std::cout << "The user nickname must not be bigger than \"" 
-            << building_msg_.max_destinatary_length << "\".\n";
+            << im_message::max_destinatary_length << "\".\n";
           std::cout << "\n";
         }
         else
         {
+          std::cout << "im_client_user_io_handler::process_command -> Connecting to server...\n";
           callback_ptr_->connect();
-          building_msg_.fill_connect_msg( destinatary.c_str() );
-          callback_ptr_->send_message( building_msg_ );
+          std::cout << "im_client_user_io_handler::process_command -> Sending message...\n";
+          callback_ptr_->send_message( 
+            im_message::build_connect_msg( destinatary ) );
         }
       }
     }
@@ -104,10 +106,10 @@ void im_client_user_io_handler::process_command(
           std::cout << "\n";
         }
         else if ( destinatary.length() > 
-          building_msg_.max_destinatary_length )
+          im_message::max_destinatary_length )
         {
           std::cout << "The user nickname must not be bigger than \"" 
-            << building_msg_.max_destinatary_length << "\".\n";
+            << im_message::max_destinatary_length << "\".\n";
           std::cout << "\n";
         }
         else
@@ -117,18 +119,21 @@ void im_client_user_io_handler::process_command(
         }
       }
     }
+    else if ( command.compare( LIST_CMD ) == 0)
+    {
+      callback_ptr_->send_message( im_message::build_list_request_msg() );
+    }
     else if ( command.compare( QUIT_CMD ) == 0)
     {
-      building_msg_.fill_disconnect_msg( command.c_str() );
-      callback_ptr_->send_message( building_msg_ );
+      callback_ptr_->send_message( im_message::build_disconnect_msg() );
     }
     else
     {
       if ( is_building_msg )
       {
-        building_msg_.fill_message_msg( destinatary_nickname.c_str(), 
-          command.c_str() );
-        callback_ptr_->send_message( building_msg_ );
+        callback_ptr_->send_message( 
+          im_message::build_message_msg_from_originator( 
+            destinatary_nickname, command ) );
 
         is_building_msg = false;
       }
@@ -180,6 +185,8 @@ void im_client_user_io_handler::print_help(bool with_intro)
      << "server to start sending messages.\n";
   std::cout << "  Usage: \"" << CONNECT_CMD << " <YOUR_NICK_NAME>\", " 
      << "where \"<YOUR_NICK_NAME>\" must be replaced by your nickname.\n";
+  std::cout << "  If you provide a nickname that was already registered "
+    << "with the sending message server, the connection will be refused.\n";
   std::cout << "\n";
   std::cout << MESSAGE_CMD << " : this command allows you to send a message" 
      << " to a specific destinatary at the sending messages server.\n";
@@ -187,15 +194,18 @@ void im_client_user_io_handler::print_help(bool with_intro)
      << " where \"<DESTINATION_NICK_NAME>\" must be replaced by the nickname"
      << " of the person you want to send the message to.\n";
   std::cout << "  Everything that is typed after a \"" << MESSAGE_CMD << "\" "
-    << "command is issued will be the message to be sent to the provided " 
-    << "destinatary.\n";
+    << "command is issued will be the message to be sent to the previously " 
+    << "provided destinatary.\n";
+  std::cout << "\n";
+  std::cout << LIST_CMD << " : this command returns the list of nicknames " 
+    << "already registered with the sending message server.\n";
   std::cout << "\n";
   std::cout << QUIT_CMD << " : this command terminates your connection " 
     << "with the sending message server.\n";
   std::cout << "\n";
-  std::cout << "It's important to note that \"" << MESSAGE_CMD << "\" and \""
-    << QUIT_CMD << "\" commands can only be executed after a successfull "
-    << "connection with the server.\n";
+  std::cout << "It's important to note that \"" << MESSAGE_CMD << "\", \""
+    << LIST_CMD << "\" and \"" << QUIT_CMD << "\" commands can only be "
+    "executed after a successfull connection with the server.\n";
   std::cout << "\n";
   std::cout << "Please, try it out!!!\n";
   std::cout << "\n";
@@ -221,5 +231,6 @@ std::vector<std::string> im_client_user_io_handler::extract_command_tokens(
 const std::string im_client_user_io_handler::HELP_CMD = "help";
 const std::string im_client_user_io_handler::CONNECT_CMD = "connect";
 const std::string im_client_user_io_handler::MESSAGE_CMD = "message";
+const std::string im_client_user_io_handler::LIST_CMD = "list";
 const std::string im_client_user_io_handler::QUIT_CMD = "quit";
 

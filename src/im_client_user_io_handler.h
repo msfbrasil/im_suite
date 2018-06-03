@@ -22,7 +22,7 @@ class im_client_user_io_handler_callback
 public:
   virtual ~im_client_user_io_handler_callback() {}
   virtual void connect() = 0;
-  virtual void send_message(const im_message& msg) = 0;
+  virtual void send_message(im_message_ptr im_message_ptr) = 0;
 };
 
 typedef std::shared_ptr<im_client_user_io_handler_callback> im_client_user_io_handler_callback_ptr;
@@ -48,11 +48,11 @@ private:
   static const std::string HELP_CMD;
   static const std::string CONNECT_CMD;
   static const std::string MESSAGE_CMD;
+  static const std::string LIST_CMD;
   static const std::string QUIT_CMD;
 
 private:
   im_client_user_io_handler_callback_ptr callback_ptr_;
-  im_message building_msg_;
   bool is_building_msg = false;
   std::string destinatary_nickname;
 };

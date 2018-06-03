@@ -20,7 +20,7 @@ using boost::asio::ip::tcp;
 
 class im_client 
     : public std::enable_shared_from_this<im_client>, 
-      public im_message_handler_callback, 
+      public im_session_handler_callback, 
       public im_client_user_io_handler_callback
 {
 public:
@@ -30,7 +30,7 @@ public:
 
   void stop();
 
-  // Inherited from im_message_io_handler_callback.
+  // Inherited from im_session_handler_callback.
   //
   void on_message_received(im_session_ptr im_session_ptr, 
     const im_message& msg);
@@ -40,7 +40,7 @@ public:
   // Inherited from im_client_user_io_handler_callback.
   //
   void connect();
-  void send_message(const im_message& msg);
+  void send_message(im_message_ptr im_message_ptr);
 
 private:
   void do_connect(tcp::resolver::iterator endpoint_iterator);

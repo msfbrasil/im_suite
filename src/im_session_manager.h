@@ -12,29 +12,72 @@
 #include <list>
 #include <boost/thread/mutex.hpp>
 #include "im_session.h"
+#include "im_message_handler.h"
 
 //----------------------------------------------------------------------
 
 class im_session_manager 
-  : public im_message_handler_callback
+  : public std::enable_shared_from_this<im_session_manager>,
+    public im_session_handler_callback, 
+    public im_message_handler_callback
 {
 public:
   im_session_manager();
 
+  void start();
   void add_session( im_session_ptr im_session_ptr );
   void remove_session( im_session_ptr im_session_ptr );
-  void send_broadcast( const im_message& msg );
+  void send_broadcast( im_message_ptr im_message_ptr );
+  void send_broadcast( im_message_ptr im_message_ptr, 
+    std::string skip_nickname );
 
-  // Inherited from im_message_io_handler_callback.
+  // Inherited from im_session_handler_callback.
   //
   void on_message_received(im_session_ptr im_session_ptr, 
     const im_message& msg);
   void on_error(im_session_ptr im_session_ptr, 
     boost::system::error_code ec);
 
+  // Inherited from im_message_handler_callback.
+  //
+  void on_connect_msg( im_session_ptr im_session_ptr, 
+    std::string nickname );
+  void on_connect_ack_msg( im_session_ptr im_session_ptr, 
+    std::string ack_message );
+  void on_connect_rfsd_msg( im_session_ptr im_session_ptr, 
+    std::string error_message );
+  void on_message_msg( im_session_ptr im_session_ptr, 
+    std::string destinatary_nickname, std::string message );
+  void on_message_ack_msg( im_session_ptr im_session_ptr, 
+    std::string ack_message );
+  void on_message_rfsd_msg( im_session_ptr im_session_ptr, 
+    std::string error_message );
+  void on_list_request_msg( im_session_ptr im_session_ptr );
+  void on_list_response_msg( im_session_ptr im_session_ptr, 
+    std::vector<std::string> nicknames_list );
+  void on_disconnect_msg( im_session_ptr im_session_ptr );
+  void on_disconnect_ack_msg( im_session_ptr im_session_ptr, 
+    std::string ack_message );
+  void on_broadcast_msg( im_session_ptr im_session_ptr, 
+    std::string nickname );
+
+private:
+  bool is_nickname_already_registered( std::string nickname );
+  void register_nickname( im_session_ptr session_ptr, std::string nickname );
+
+  std::string get_nickname_already_connect_message( std::string nickname );
+  std::string get_connection_accepted_message();
+
 private:
   boost::mutex sessions_list_mutex;
   std::list<im_session_ptr> sessions_list;
+
+  boost::mutex nicknames_mutex;
+  std::list<std::string> nicknames_list;
+  std::map<std::string, im_session_ptr> nicknames_sessions_map;
+  std::map<im_session_ptr, std::string> sessions_nicknames_map;
+
+  im_message_handler im_message_handler_;
 };
 
 //----------------------------------------------------------------------

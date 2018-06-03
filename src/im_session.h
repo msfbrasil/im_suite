@@ -29,17 +29,17 @@ typedef std::shared_ptr<im_session> im_session_ptr;
 
 //----------------------------------------------------------------------
 
-class im_message_handler_callback
+class im_session_handler_callback
 {
 public:
-  virtual ~im_message_handler_callback() {}
+  virtual ~im_session_handler_callback() {}
   virtual void on_message_received(im_session_ptr im_session_ptr, 
     const im_message& msg) = 0;
   virtual void on_error(im_session_ptr im_session_ptr, 
     boost::system::error_code ec) = 0;
 };
 
-typedef std::shared_ptr<im_message_handler_callback> im_message_handler_callback_ptr;
+typedef std::shared_ptr<im_session_handler_callback> im_session_handler_callback_ptr;
 
 //----------------------------------------------------------------------
 
@@ -48,8 +48,8 @@ class im_session
 {
 public:
   im_session(socket_ptr socket_ptr);
-  void start(im_message_handler_callback_ptr callback_ptr);
-  void send_message(const im_message& msg);
+  void start(im_session_handler_callback_ptr callback_ptr);
+  void send_message(im_message_ptr im_message_ptr);
 
 private:
   void do_read_type();
@@ -59,7 +59,7 @@ private:
 
 private:
   socket_ptr socket_ptr_;
-  im_message_handler_callback_ptr callback_ptr_;
+  im_session_handler_callback_ptr callback_ptr_;
   im_message read_msg_;
   im_message_queue write_msgs_;
 };
