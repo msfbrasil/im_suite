@@ -44,7 +44,7 @@ void im_session_manager::send_broadcast( im_message_ptr im_message_ptr )
 
   for ( auto im_session_ptr : sessions_list )
   {
-    im_session_ptr->send_message( im_message_ptr );
+    //im_session_ptr->send_message( im_message_ptr );
   }
 }
 
@@ -65,7 +65,7 @@ void im_session_manager::send_broadcast( im_message_ptr im_message_ptr,
     if ( ( skip_nickname_session == NULL ) 
       || ( im_session_ptr != skip_nickname_session ) )
     {
-      im_session_ptr->send_message( im_message_ptr );
+      //im_session_ptr->send_message( im_message_ptr );
     }
   }
 }
@@ -89,6 +89,7 @@ void im_session_manager::on_error(im_session_ptr im_session_ptr,
 {
   std::cerr << "Communication error: " << ec.category().name()
     << " -> " << ec.value() << "\n";
+  
   remove_session( im_session_ptr );
 }
 
@@ -103,16 +104,20 @@ void im_session_manager::on_connect_msg( im_session_ptr im_session_ptr,
   {
     std::cout << "Nickname already registered, sending refuse...\n";
     // TODO: this should result on client disconnection.
-    im_session_ptr->send_message( im_message::build_connect_rfsd_msg( 
-      get_nickname_already_connect_message( nickname ) ) );
+    im_message building_message;
+    im_message::build_connect_rfsd_msg( 
+      building_message, get_nickname_already_connect_message( nickname ) );
+    im_session_ptr->send_message( building_message );
   }
   else
   {
     std::cout << "Registering new nickname...\n";
     register_nickname( im_session_ptr, nickname );
     std::cout << "Sending acknowledge...\n";
-    im_session_ptr->send_message( im_message::build_connect_ack_msg( 
-      get_connection_accepted_message() ) );
+    im_message building_message;
+    im_message::build_connect_ack_msg( building_message, 
+      get_connection_accepted_message() );
+    im_session_ptr->send_message( building_message );
   }
 }
 
@@ -143,9 +148,10 @@ void im_session_manager::on_message_msg( im_session_ptr im_session_ptr,
   std::cout << "Originator nickname retrieved: " << originator_nickname << "\n";
   
   std::cout << "Sending message to destinatary...\n";
-  destinatary_session->send_message( 
-    im_message::build_message_msg_to_destinatary( 
-      originator_nickname, message ) );
+  im_message building_message;
+  im_message::build_message_msg_to_destinatary( 
+    building_message, originator_nickname, message );
+  destinatary_session->send_message( building_message );
 }
 
 void im_session_manager::on_message_ack_msg( im_session_ptr im_session_ptr, 
@@ -164,8 +170,10 @@ void im_session_manager::on_list_request_msg( im_session_ptr im_session_ptr )
 {
   boost::unique_lock<boost::mutex> scoped_lock( nicknames_mutex );
   std::cout << "List request received. Sending the list...\n";
-  im_session_ptr->send_message( im_message::build_list_response_msg( 
-    nicknames_list ) );
+  im_message building_message;
+  im_message::build_list_response_msg( 
+    building_message, nicknames_list );
+  im_session_ptr->send_message( building_message );
 }
 
 void im_session_manager::on_list_response_msg( im_session_ptr im_session_ptr, 

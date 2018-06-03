@@ -40,7 +40,7 @@ public:
   // Inherited from im_client_user_io_handler_callback.
   //
   void connect();
-  void send_message(im_message_ptr im_message_ptr);
+  void send_message(const im_message& msg);
 
 private:
   void do_connect(tcp::resolver::iterator endpoint_iterator);

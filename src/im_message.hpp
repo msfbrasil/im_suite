@@ -40,6 +40,7 @@ public:
     + default_separator_length + max_message_length };
 
   enum MessageTypes {
+    PRIOR_FIRST_MESSAGE = 0,
     CONNECT_MSG = 1,
     CONNECT_ACK_MSG,
     CONNECT_RFSD_MSG,
@@ -50,7 +51,8 @@ public:
     LIST_RESPONSE_MSG,
     DISCONNECT_MSG,
     DISCONNECT_ACK_MSG,
-    BROADCAST_MSG
+    BROADCAST_MSG,
+    AFTER_LAST_MESSAGE
   };
 
   //static const std::string DEFAULT_SEPARATOR;
@@ -139,12 +141,11 @@ public:
     char type[type_length + 1] = "";
     std::strncat(type, data_, type_length);
     type_ = std::atoi(type);
-    if ( (type_ != CONNECT_MSG) && (type_ != MESSAGE_MSG) 
-      && (type_ != DISCONNECT_MSG) )
+    if ( is_valid_message() )
     {
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   void encode_type()
@@ -152,6 +153,11 @@ public:
     char type[type_length + 1] = "";
     std::sprintf(type, "%2d", static_cast<int>(type_));
     std::memcpy(data_, type, type_length);
+  }
+
+  void clear()
+  {
+    memset( data_, 0, type_length + length_length + max_value_length );
   }
 
   //----------------------------------------------------------------------
@@ -405,6 +411,139 @@ public:
 
   //----------------------------------------------------------------------
 
+  static void build_connect_msg( im_message& building_message, 
+    std::string nickname )
+  {
+    building_message.type_ = CONNECT_MSG;
+    building_message.value_length(nickname.length());
+    std::memcpy(building_message.value(), nickname.c_str(), nickname.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_connect_ack_msg( im_message& building_message, 
+    std::string ack_message )
+  {
+    building_message.type_ = CONNECT_ACK_MSG;
+    building_message.value_length(ack_message.length());
+    std::memcpy(building_message.value(), ack_message.c_str(), ack_message.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_connect_rfsd_msg( 
+    im_message& building_message, std::string error_message )
+  {
+    building_message.type_ = CONNECT_RFSD_MSG;
+    building_message.value_length(error_message.length());
+    std::memcpy(building_message.value(), error_message.c_str(), 
+      error_message.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_message_msg_from_originator( 
+    im_message& building_message, std::string destinatary_nickname, 
+    std::string message )
+  {
+    building_message.type_ = MESSAGE_MSG;
+    std::string message_value = build_message_value( 
+      destinatary_nickname, message );
+    building_message.value_length(message_value.length());
+    std::memcpy(building_message.value(), message_value.c_str(), 
+      message_value.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_message_msg_to_destinatary( 
+    im_message& building_message, std::string originator_nickname, 
+    std::string message )
+  {
+    building_message.type_ = MESSAGE_MSG;
+    std::string message_value = build_message_value( 
+      originator_nickname, message );
+    building_message.value_length(message_value.length());
+    std::memcpy(building_message.value(), message_value.c_str(), 
+      message_value.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_message_ack_msg( im_message& building_message, 
+    std::string ack_message )
+  {
+    building_message.type_ = MESSAGE_ACK_MSG;
+    building_message.value_length(ack_message.length());
+    std::memcpy(building_message.value(), ack_message.c_str(), ack_message.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_message_rfsd_msg( im_message& building_message, 
+    std::string error_message )
+  {
+    building_message.type_ = MESSAGE_RFSD_MSG;
+    building_message.value_length(error_message.length());
+    std::memcpy(building_message.value(), error_message.c_str(), 
+      error_message.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_list_request_msg( im_message& building_message )
+  {
+    building_message.type_ = LIST_REQUEST_MSG;
+    building_message.value_length(0);
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_list_response_msg( 
+    im_message& building_message, const std::list<std::string> nicknames_list )
+  {
+    building_message.type_ = LIST_RESPONSE_MSG;
+    std::string list_response_value = 
+      build_list_response_value( nicknames_list );
+    building_message.value_length(list_response_value.length());
+    std::memcpy(building_message.value(), list_response_value.c_str(), 
+      list_response_value.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_disconnect_msg( im_message& building_message )
+  {
+    building_message.type_ = DISCONNECT_MSG;
+    building_message.value_length(0);
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  static im_message_ptr build_disconnect_ack_msg( 
+    im_message& building_message, std::string ack_message )
+  {
+    building_message.type_ = DISCONNECT_ACK_MSG;
+    building_message.value_length(ack_message.length());
+    std::memcpy(building_message.value(), ack_message.c_str(), 
+      ack_message.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  im_message_ptr build_broadcast_msg( im_message& building_message, 
+    std::string broadcast_message )
+  {
+    building_message.type_ = BROADCAST_MSG;
+    building_message.value_length(broadcast_message.length());
+    std::memcpy(building_message.value(), broadcast_message.c_str(), 
+      broadcast_message.length());
+    building_message.encode_type();
+    building_message.encode_length();
+  }
+
+  //----------------------------------------------------------------------
+
   bool is_connect_msg() const
   {
     return type_ == CONNECT_MSG;
@@ -550,6 +689,24 @@ private:
     return command_elements;
   }
 
+  bool is_valid_message()
+  {
+    //if ( ( type_ != CONNECT_MSG) && ( type_ != CONNECT_ACK_MSG ) 
+      //&& ( type_ != CONNECT_RFSD_MSG ) && ( type_ != MESSAGE_MSG ) 
+      //&& ( type_ != MESSAGE_ACK_MSG ) && ( type_ != MESSAGE_RFSD_MSG ) 
+      //&& ( type_ != LIST_REQUEST_MSG ) && ( type_ != LIST_RESPONSE_MSG ) 
+      //&& ( type_ != DISCONNECT_MSG ) && ( type_ != DISCONNECT_ACK_MSG ) 
+      //&& ( type_ != BROADCAST_MSG ) )
+    if ( ( type_ > PRIOR_FIRST_MESSAGE ) && ( type_ < AFTER_LAST_MESSAGE ) )
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
 private:
   char data_[type_length + length_length + max_value_length];
   std::size_t value_length_;
@@ -562,7 +719,7 @@ private:
 
 //----------------------------------------------------------------------
 
-typedef std::deque<im_message_ptr> im_message_queue;
+typedef std::deque<im_message> im_message_queue;
 
 //----------------------------------------------------------------------
 
