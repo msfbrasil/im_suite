@@ -21,7 +21,7 @@ class im_client_user_io_handler_callback
 {
 public:
   virtual ~im_client_user_io_handler_callback() {}
-  virtual void connect() = 0;
+  virtual bool connect() = 0;
   virtual bool is_connected() = 0;
   virtual void send_message(im_message_ptr im_message_ptr) = 0;
 };
@@ -40,6 +40,7 @@ public:
   
   void print_user_message( const std::string originator, const std::string message );
   void print_server_message( const std::string message );
+  void print_client_message( const std::string message );
   void print_nicknames_list( const std::vector<std::string> nicknames_list );
   void print_error(const std::string prefix, boost::system::error_code ec);
 

@@ -66,12 +66,14 @@ void im_client::on_message_received(im_session_ptr im_session_ptr,
 void im_client::on_error(im_session_ptr im_session_ptr, 
   boost::system::error_code ec)
 {
-  client_user_io_handler_.print_error( "Communication client error: ", ec );
+  client_user_io_handler_.print_error( "Communication with server was lost: ", ec );
+  client_user_io_handler_.print_client_message( "You were disconnected. Please connect again to send messages." );
+  disconnect();
 }
 
 //----------------------------------------------------------------------
 
-void im_client::connect()
+bool im_client::connect()
 {
   //std::cout << "Creating a new socket...\n";
   socket_ptr_ = std::make_shared<tcp::socket>(io_service_);
@@ -80,14 +82,19 @@ void im_client::connect()
   im_session_ptr_ = std::make_shared<im_session>(socket_ptr_);
   
   //std::cout << "Connect to new socket...\n";
-  do_connect(endpoint_iterator_);
+  if ( do_connect(endpoint_iterator_) )
+  {
+    //std::cout << "Calling io_service().reset ...\n";
+    io_service_.reset();
 
-  //std::cout << "Calling io_service().reset ...\n";
-  io_service_.reset();
+    //std::cout << "Run io_service().run ...\n";
+    io_service_thread_ = std::thread([&](){ io_service_.run(); });
+    //std::cout << "Run io_service().running ...\n";
 
-  //std::cout << "Run io_service().run ...\n";
-  io_service_thread_ = std::thread([&](){ io_service_.run(); });
-  //std::cout << "Run io_service().running ...\n";
+    return true;
+  }
+
+  return false;
 }
 
 bool im_client::is_connected()
@@ -127,6 +134,7 @@ void im_client::on_connect_rfsd_msg( im_session_ptr im_session_ptr,
   std::string error_message )
 {
   client_user_io_handler_.print_server_message( error_message );
+  disconnect();
 }
 
 void im_client::on_message_msg( im_session_ptr im_session_ptr, 
@@ -180,17 +188,19 @@ void im_client::on_broadcast_msg( im_session_ptr im_session_ptr,
 // Private methods.
 //----------------------------------------------------------------------
 
-void im_client::do_connect(tcp::resolver::iterator endpoint_iterator)
+bool im_client::do_connect(tcp::resolver::iterator endpoint_iterator)
 {
   boost::system::error_code ec;
   boost::asio::connect(*socket_ptr_, endpoint_iterator, ec);
   if (!ec)
   {
     im_session_ptr_->start( shared_from_this() );
+    return true;
   }
   else
   {
     client_user_io_handler_.print_error( "Error connecting to server: ", ec );
+    return false;
   }
 }
 

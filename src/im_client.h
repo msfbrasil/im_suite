@@ -43,7 +43,7 @@ public:
 
   // Inherited from im_client_user_io_handler_callback.
   //
-  void connect();
+  bool connect();
   bool is_connected();
   void send_message(im_message_ptr im_message_ptr);
 
@@ -71,7 +71,7 @@ public:
     std::string broadcast_message );
 
 private:
-  void do_connect(tcp::resolver::iterator endpoint_iterator);
+  bool do_connect(tcp::resolver::iterator endpoint_iterator);
 
 private:
   boost::asio::io_service& io_service_;

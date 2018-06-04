@@ -100,11 +100,13 @@ bool im_client_user_io_handler::process_command(
           {
             //std::cout << "im_client_user_io_handler::process_command -> "
               //"Connecting to server...\n";
-            callback_ptr_->connect();
-            //std::cout << "im_client_user_io_handler::process_command -> "
-              //"Sending message...\n";
-            callback_ptr_->send_message( 
-              im_message::build_connect_msg( destinatary ) );
+            if ( callback_ptr_->connect() )
+            {
+              //std::cout << "im_client_user_io_handler::process_command -> "
+                //"Sending message...\n";
+              callback_ptr_->send_message( 
+                im_message::build_connect_msg( destinatary ) );
+            }
           }
         }
       }
@@ -229,6 +231,13 @@ void im_client_user_io_handler::print_server_message(
   const std::string message )
 {
   std::cout << "[server] said: " << message << "\n";
+  print_next_command_dash();
+}
+
+void im_client_user_io_handler::print_client_message( 
+  const std::string message )
+{
+  std::cout << "[client] said: " << message << "\n";
   print_next_command_dash();
 }
 

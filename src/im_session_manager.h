@@ -72,11 +72,16 @@ private:
   std::string get_message_accepted_message();
   std::string get_disconnection_accepted_message();
 
+  int get_sessions_list_size();
+  int get_nicknames_list_size();
+  int get_nicknames_sessions_map_size();
+  int get_sessions_nicknames_map_size();
+
 private:
   boost::mutex sessions_list_mutex;
   std::list<im_session_ptr> sessions_list;
 
-  boost::mutex nicknames_mutex;
+  boost::mutex nicknames_resources_mutex;
   std::list<std::string> nicknames_list;
   std::map<std::string, im_session_ptr> nicknames_sessions_map;
   std::map<im_session_ptr, std::string> sessions_nicknames_map;
