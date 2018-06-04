@@ -115,6 +115,9 @@ void im_session_manager::on_connect_msg( im_session_ptr im_session_ptr,
     //std::cout << "Sending acknowledge...\n";
     im_session_ptr->send_message( im_message::build_connect_ack_msg( 
       get_connection_accepted_message() ) );
+    //std::cout << "Sending user logged in broadcast...\n";
+    send_broadcast( im_message::build_broadcast_msg( 
+      get_logged_in_broadcast_message( nickname ) ), nickname );
 
     //std::cout << "sessions_list size is: " 
       //<< get_sessions_list_size() << ".\n";
@@ -273,6 +276,10 @@ void im_session_manager::unregister_session( im_session_ptr session_ptr )
       nicknames_list.remove( originator_nickname );
       nicknames_sessions_map.erase( originator_nickname );
       sessions_nicknames_map.erase( session_ptr );
+
+      //std::cout << "Sending user logged out broadcast...\n";
+      send_broadcast( im_message::build_broadcast_msg( 
+        get_logged_out_broadcast_message( originator_nickname ) ) );
     }
     catch (std::out_of_range e)
     {
@@ -317,6 +324,20 @@ std::string im_session_manager::get_message_accepted_message()
 std::string im_session_manager::get_disconnection_accepted_message()
 {
   return "Connection successfully ended.";
+}
+
+std::string im_session_manager::get_logged_in_broadcast_message( 
+  std::string nickname )
+{
+  return std::string( "User with nickname \"" ).append( nickname ).append( 
+    "\" has logged in." );
+}
+
+std::string im_session_manager::get_logged_out_broadcast_message( 
+  std::string nickname )
+{
+  return std::string( "User with nickname \"" ).append( nickname ).append( 
+    "\" has logged out." );
 }
 
 int im_session_manager::get_sessions_list_size()

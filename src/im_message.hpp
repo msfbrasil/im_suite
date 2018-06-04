@@ -397,7 +397,7 @@ public:
     return new_message_ptr;
   }
 
-  im_message_ptr build_broadcast_msg( std::string broadcast_message )
+  static im_message_ptr build_broadcast_msg( std::string broadcast_message )
   {
     im_message_ptr new_message_ptr = std::make_shared<im_message>();
     new_message_ptr->type_ = BROADCAST_MSG;

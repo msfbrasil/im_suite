@@ -71,6 +71,8 @@ private:
   std::string get_destinatary_not_found_message( std::string nickname );
   std::string get_message_accepted_message();
   std::string get_disconnection_accepted_message();
+  std::string get_logged_in_broadcast_message( std::string nickname );
+  std::string get_logged_out_broadcast_message( std::string nickname );
 
   int get_sessions_list_size();
   int get_nicknames_list_size();
