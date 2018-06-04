@@ -92,7 +92,8 @@ void im_client::connect()
 
 bool im_client::is_connected()
 {
-  return im_session_ptr_->is_connected() && is_connected_with_server_;
+  return ( ( im_session_ptr_ != NULL ) && ( im_session_ptr_->is_connected() ) 
+    && ( is_connected_with_server_ ) );
 }
 
 void im_client::send_message(im_message_ptr im_message_ptr)

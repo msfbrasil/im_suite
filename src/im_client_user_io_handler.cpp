@@ -68,37 +68,44 @@ bool im_client_user_io_handler::process_command(
     else if ( boost::starts_with( command, CONNECT_CMD ) )
     {
       //std::cout << "Processing 'connect' command.\n";
-      std::vector<std::string> command_tokens = 
-          extract_command_tokens( command );
-
-      if ( command_tokens.size() != 2 )
+      if ( callback_ptr_->is_connected() )
       {
-        std::cout << "# [client] said: The \"" << CONNECT_CMD << "\" command " 
-          << "accepts only one parameter that is the user nickname.\n";
+        std::cout << "# [client] said: You are already connected.\n";
       }
       else
       {
-        std::string destinatary = trim( command_tokens.at( 1 ) );
+        std::vector<std::string> command_tokens = 
+            extract_command_tokens( command );
 
-        if ( destinatary.empty() )
+        if ( command_tokens.size() != 2 )
         {
-          std::cout << "# [client] said: Empty nicknames are not allowed.\n";
-        }
-        else if ( destinatary.length() > 
-          im_message::max_destinatary_length )
-        {
-          std::cout << "# [client] said: The user nickname must not be bigger \""
-            << " than" << im_message::max_destinatary_length << "\".\n";
+          std::cout << "# [client] said: The \"" << CONNECT_CMD << "\" command " 
+            << "accepts only one parameter that is the user nickname.\n";
         }
         else
         {
-          //std::cout << "im_client_user_io_handler::process_command -> "
-            //"Connecting to server...\n";
-          callback_ptr_->connect();
-          //std::cout << "im_client_user_io_handler::process_command -> "
-            //"Sending message...\n";
-          callback_ptr_->send_message( 
-            im_message::build_connect_msg( destinatary ) );
+          std::string destinatary = trim( command_tokens.at( 1 ) );
+
+          if ( destinatary.empty() )
+          {
+            std::cout << "# [client] said: Empty nicknames are not allowed.\n";
+          }
+          else if ( destinatary.length() > 
+            im_message::max_destinatary_length )
+          {
+            std::cout << "# [client] said: The user nickname must not be bigger \""
+              << " than" << im_message::max_destinatary_length << "\".\n";
+          }
+          else
+          {
+            //std::cout << "im_client_user_io_handler::process_command -> "
+              //"Connecting to server...\n";
+            callback_ptr_->connect();
+            //std::cout << "im_client_user_io_handler::process_command -> "
+              //"Sending message...\n";
+            callback_ptr_->send_message( 
+              im_message::build_connect_msg( destinatary ) );
+          }
         }
       }
 
@@ -107,64 +114,98 @@ bool im_client_user_io_handler::process_command(
     else if ( boost::starts_with( command, MESSAGE_CMD ) )
     {
       //std::cout << "Processing 'message' command.\n";
-      std::vector<std::string> command_tokens = 
-          extract_command_tokens( command );
-
-      if ( command_tokens.size() != 2 )
+      if ( !callback_ptr_->is_connected() )
       {
-        std::cout << "# [client] said: The \"" << MESSAGE_CMD << "\" command " 
-          << "accepts only one parameter that is the destinatary nickname.\n";
+        std::cout << "# [client] said: You need to be connected before " 
+          << "calling \"" << MESSAGE_CMD << "\" command.\n";
 
         print_next_command_dash();
       }
       else
       {
-        std::string destinatary = trim( command_tokens.at( 1 ) );
+        std::vector<std::string> command_tokens = 
+            extract_command_tokens( command );
 
-        if ( destinatary.empty() )
+        if ( command_tokens.size() != 2 )
         {
-          std::cout << "# [client] said: Empty nicknames are not allowed.\n";
-
-          print_next_command_dash();
-        }
-        else if ( destinatary.length() > 
-          im_message::max_destinatary_length )
-        {
-          std::cout << "# [client] said: The user nickname must not be bigger \"" 
-            << "than " << im_message::max_destinatary_length << "\".\n";
+          std::cout << "# [client] said: The \"" << MESSAGE_CMD << "\" command " 
+            << "accepts only one parameter that is the destinatary nickname.\n";
 
           print_next_command_dash();
         }
         else
         {
-          destinatary_nickname = destinatary;
-          is_building_msg = true;
-          std::cout << "# Type message: ";
+          std::string destinatary = trim( command_tokens.at( 1 ) );
+
+          if ( destinatary.empty() )
+          {
+            std::cout << "# [client] said: Empty nicknames are not allowed.\n";
+
+            print_next_command_dash();
+          }
+          else if ( destinatary.length() > 
+            im_message::max_destinatary_length )
+          {
+            std::cout << "# [client] said: The user nickname must not be bigger \"" 
+              << "than " << im_message::max_destinatary_length << "\".\n";
+
+            print_next_command_dash();
+          }
+          else
+          {
+            destinatary_nickname = destinatary;
+            is_building_msg = true;
+            std::cout << "# Type message: ";
+          }
         }
       }
     }
     else if ( command.compare( LIST_CMD ) == 0)
     {
       //std::cout << "Processing 'list' command.\n";
-      callback_ptr_->send_message( im_message::build_list_request_msg() );
+      if ( !callback_ptr_->is_connected() )
+      {
+        std::cout << "# [client] said: You need to be connected before " 
+          << "calling \"" << LIST_CMD << "\" command.\n";
+      }
+      else
+      {
+        callback_ptr_->send_message( im_message::build_list_request_msg() );
+      }
 
       print_next_command_dash();
     }
     else if ( command.compare( DISCONNECT_CMD ) == 0)
     {
       //std::cout << "Processing 'disconnect' command.\n";
-      callback_ptr_->send_message( im_message::build_disconnect_msg() );
+      if ( !callback_ptr_->is_connected() )
+      {
+        std::cout << "# [client] said: You need to be connected before " 
+          << "calling \"" << DISCONNECT_CMD << "\" command.\n";
+      }
+      else
+      {
+        callback_ptr_->send_message( im_message::build_disconnect_msg() );
+      }
 
       print_next_command_dash();
     }
     else if ( command.compare( QUIT_CMD ) == 0)
     {
       //std::cout << "Processing 'quit' command.\n";
-      callback_ptr_->send_message( im_message::build_disconnect_msg() );
+      if ( callback_ptr_->is_connected() )
+      {
+        std::cout << "# [client] said: You need to disconnect before " 
+          << "calling \"" << QUIT_CMD << "\" command.\n";
+      }
+      else
+      {
+        callback_ptr_->send_message( im_message::build_disconnect_msg() );
+
+        keep_running = false;
+      }
 
       print_next_command_dash();
-
-      keep_running = false;
     }
     else
     {
