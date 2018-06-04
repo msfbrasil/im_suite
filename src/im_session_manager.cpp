@@ -44,7 +44,7 @@ void im_session_manager::send_broadcast( im_message_ptr im_message_ptr )
 
   for ( auto im_session_ptr : sessions_list )
   {
-    //im_session_ptr->send_message( im_message_ptr );
+    im_session_ptr->send_message( im_message_ptr );
   }
 }
 
@@ -65,7 +65,7 @@ void im_session_manager::send_broadcast( im_message_ptr im_message_ptr,
     if ( ( skip_nickname_session == NULL ) 
       || ( im_session_ptr != skip_nickname_session ) )
     {
-      //im_session_ptr->send_message( im_message_ptr );
+      im_session_ptr->send_message( im_message_ptr );
     }
   }
 }
@@ -135,18 +135,31 @@ void im_session_manager::on_message_msg( im_session_ptr im_session_ptr,
   boost::unique_lock<boost::mutex> scoped_lock( nicknames_mutex );
 
   std::cout << "Retrieving the destinatary session...\n";
-  auto destinatary_session = 
-    nicknames_sessions_map.at( destinatary_nickname );
-  std::cout << "Destinatary session retrieved: " << destinatary_session << "\n";
 
-  std::cout << "Registering originator nickname...\n";
-  auto originator_nickname = sessions_nicknames_map.at( im_session_ptr );
-  std::cout << "Originator nickname retrieved: " << originator_nickname << "\n";
-  
-  std::cout << "Sending message to destinatary...\n";
-  destinatary_session->send_message( 
-    im_message::build_message_msg_to_destinatary( 
-      originator_nickname, message ) );
+  try 
+  { 
+    auto destinatary_session = nicknames_sessions_map.at( destinatary_nickname );
+    std::cout << "Destinatary session retrieved: " << destinatary_session << "\n";
+
+    std::cout << "Registering originator nickname...\n";
+    auto originator_nickname = sessions_nicknames_map.at( im_session_ptr );
+    std::cout << "Originator nickname retrieved: " << originator_nickname << "\n";
+
+    std::cout << "Sending message to destinatary...\n";
+    destinatary_session->send_message( 
+      im_message::build_message_msg_to_destinatary( 
+        originator_nickname, message ) );
+
+    std::cout << "Sending message acknowledge to originator...\n";
+    im_session_ptr->send_message( im_message::build_message_ack_msg( 
+      get_message_accepted_message() ) );
+  }
+  catch (std::out_of_range e)
+  {
+    std::cout << "Destinatary session not found! Sending message refused.\n";
+    im_session_ptr->send_message( im_message::build_message_ack_msg( 
+      get_destinatary_not_found_message( destinatary_nickname ) ) );
+  }
 }
 
 void im_session_manager::on_message_ack_msg( im_session_ptr im_session_ptr, 
@@ -187,7 +200,7 @@ void im_session_manager::on_disconnect_ack_msg( im_session_ptr im_session_ptr,
 }
 
 void im_session_manager::on_broadcast_msg( im_session_ptr im_session_ptr, 
-  std::string nickname )
+  std::string broadcast_message )
 {
   // Handled by client.
 }
@@ -232,5 +245,17 @@ std::string im_session_manager::get_nickname_already_connect_message(
 std::string im_session_manager::get_connection_accepted_message()
 {
   return "Connection successfully established.";
+}
+
+std::string im_session_manager::get_destinatary_not_found_message( 
+  std::string nickname )
+{
+  return std::string( "No user with nickname \"" ).append( nickname ).append( 
+    "\" was found." );
+}
+
+std::string im_session_manager::get_message_accepted_message()
+{
+  return "Message successfully delivered.";
 }
 

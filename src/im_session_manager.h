@@ -59,7 +59,7 @@ public:
   void on_disconnect_ack_msg( im_session_ptr im_session_ptr, 
     std::string ack_message );
   void on_broadcast_msg( im_session_ptr im_session_ptr, 
-    std::string nickname );
+    std::string broadcast_message );
 
 private:
   bool is_nickname_already_registered( std::string nickname );
@@ -67,6 +67,8 @@ private:
 
   std::string get_nickname_already_connect_message( std::string nickname );
   std::string get_connection_accepted_message();
+  std::string get_destinatary_not_found_message( std::string nickname );
+  std::string get_message_accepted_message();
 
 private:
   boost::mutex sessions_list_mutex;

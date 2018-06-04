@@ -41,7 +41,7 @@ public:
   virtual void on_disconnect_ack_msg( im_session_ptr im_session_ptr, 
     std::string ack_message ) = 0;
   virtual void on_broadcast_msg( im_session_ptr im_session_ptr, 
-    std::string message ) = 0;
+    std::string broadcast_message ) = 0;
 };
 
 typedef std::shared_ptr<im_message_handler_callback> im_message_handler_callback_ptr;

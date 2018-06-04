@@ -37,6 +37,7 @@ int main(int argc, char* argv[])
 
     im_client_ptr im_client_ptr = std::make_shared<im_client>( 
       io_service, endpoint_iterator, io_handler );
+    im_client_ptr->start();
 
     io_handler.start( im_client_ptr );
 
