@@ -104,20 +104,16 @@ void im_session_manager::on_connect_msg( im_session_ptr im_session_ptr,
   {
     std::cout << "Nickname already registered, sending refuse...\n";
     // TODO: this should result on client disconnection.
-    im_message building_message;
-    im_message::build_connect_rfsd_msg( 
-      building_message, get_nickname_already_connect_message( nickname ) );
-    im_session_ptr->send_message( building_message );
+    im_session_ptr->send_message( im_message::build_connect_rfsd_msg( 
+      get_nickname_already_connect_message( nickname ) ) );
   }
   else
   {
     std::cout << "Registering new nickname...\n";
     register_nickname( im_session_ptr, nickname );
     std::cout << "Sending acknowledge...\n";
-    im_message building_message;
-    im_message::build_connect_ack_msg( building_message, 
-      get_connection_accepted_message() );
-    im_session_ptr->send_message( building_message );
+    im_session_ptr->send_message( im_message::build_connect_ack_msg( 
+      get_connection_accepted_message() ) );
   }
 }
 
@@ -148,10 +144,9 @@ void im_session_manager::on_message_msg( im_session_ptr im_session_ptr,
   std::cout << "Originator nickname retrieved: " << originator_nickname << "\n";
   
   std::cout << "Sending message to destinatary...\n";
-  im_message building_message;
-  im_message::build_message_msg_to_destinatary( 
-    building_message, originator_nickname, message );
-  destinatary_session->send_message( building_message );
+  destinatary_session->send_message( 
+    im_message::build_message_msg_to_destinatary( 
+      originator_nickname, message ) );
 }
 
 void im_session_manager::on_message_ack_msg( im_session_ptr im_session_ptr, 
@@ -170,10 +165,8 @@ void im_session_manager::on_list_request_msg( im_session_ptr im_session_ptr )
 {
   boost::unique_lock<boost::mutex> scoped_lock( nicknames_mutex );
   std::cout << "List request received. Sending the list...\n";
-  im_message building_message;
-  im_message::build_list_response_msg( 
-    building_message, nicknames_list );
-  im_session_ptr->send_message( building_message );
+  im_session_ptr->send_message( 
+    im_message::build_list_response_msg( nicknames_list ) );
 }
 
 void im_session_manager::on_list_response_msg( im_session_ptr im_session_ptr, 

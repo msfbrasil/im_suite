@@ -62,14 +62,14 @@ void im_client::connect()
   io_service_thread = std::thread([&](){ io_service_.run(); });
 }
 
-void im_client::send_message(const im_message& msg)
+void im_client::send_message(im_message_ptr im_message_ptr)
 {
   std::cout << "im_client::send_message -> Sending message...\n";
-  std::cout << "im_client::send_message -> Which is: \"" << msg.data() << "\"\n";
+  std::cout << "im_client::send_message -> Which is: \"" << im_message_ptr->data() << "\"\n";
   io_service_.post(
-      [this, msg]()
+      [this, im_message_ptr]()
       {
-        im_session_ptr_->send_message( msg );
+        im_session_ptr_->send_message( im_message_ptr );
       });
 }
 

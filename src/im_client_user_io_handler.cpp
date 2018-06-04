@@ -80,9 +80,8 @@ void im_client_user_io_handler::process_command(
           std::cout << "im_client_user_io_handler::process_command -> Connecting to server...\n";
           callback_ptr_->connect();
           std::cout << "im_client_user_io_handler::process_command -> Sending message...\n";
-          im_message building_message;
-          im_message::build_connect_msg( building_message, destinatary );
-          callback_ptr_->send_message( building_message );
+          callback_ptr_->send_message( 
+            im_message::build_connect_msg( destinatary ) );
         }
       }
     }
@@ -122,24 +121,19 @@ void im_client_user_io_handler::process_command(
     }
     else if ( command.compare( LIST_CMD ) == 0)
     {
-      im_message building_message;
-      im_message::build_list_request_msg( building_message );
-      callback_ptr_->send_message( building_message );
+      callback_ptr_->send_message( im_message::build_list_request_msg() );
     }
     else if ( command.compare( QUIT_CMD ) == 0)
     {
-      im_message building_message;
-      im_message::build_disconnect_msg( building_message );
-      callback_ptr_->send_message( building_message );
+      callback_ptr_->send_message( im_message::build_disconnect_msg() );
     }
     else
     {
       if ( is_building_msg )
       {
-        im_message building_message;
-        im_message::build_message_msg_from_originator( 
-            building_message, destinatary_nickname, command );
-        callback_ptr_->send_message( building_message );
+        callback_ptr_->send_message( 
+          im_message::build_message_msg_from_originator( 
+            destinatary_nickname, command ) );
 
         is_building_msg = false;
       }

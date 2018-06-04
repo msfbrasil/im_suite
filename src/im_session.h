@@ -49,7 +49,7 @@ class im_session
 public:
   im_session(socket_ptr socket_ptr);
   void start(im_session_handler_callback_ptr callback_ptr);
-  void send_message(const im_message& msg);
+  void send_message(im_message_ptr im_message_ptr);
 
 private:
   void do_read_type();

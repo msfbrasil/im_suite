@@ -34,12 +34,12 @@ void im_session::start(im_session_handler_callback_ptr callback_ptr)
   do_read_type();
 }
 
-void im_session::send_message(const im_message& msg)
+void im_session::send_message(im_message_ptr im_message_ptr)
 {
   std::cout << "im_session::send_message -> Sending message...\n";
   bool write_in_progress = !write_msgs_.empty();
-  std::cout << "Pushed back message: \"" << msg.data() << "\"\n";
-  write_msgs_.push_back(msg);
+  std::cout << "Pushed back message: \"" << im_message_ptr->data() << "\"\n";
+  write_msgs_.push_back(im_message_ptr);
   if (!write_in_progress)
   {
     do_write();
@@ -150,12 +150,12 @@ void im_session::do_write()
   else {
     auto self(shared_from_this());
     std::cout << "Preparing to send the message...\n";
-    std::cout << "Which is: \"" << write_msgs_.front().data() << "\"\n";
-    std::cout << "Total size: \"" << write_msgs_.front().length() << 
-      ", and value_length :" << write_msgs_.front().value_length() << "\"\n";
+    std::cout << "Which is: \"" << write_msgs_.front()->data() << "\"\n";
+    std::cout << "Total size: \"" << write_msgs_.front()->length() << 
+      ", and value_length :" << write_msgs_.front()->value_length() << "\"\n";
     boost::asio::async_write(*socket_ptr_,
-        boost::asio::buffer(write_msgs_.front().data(),
-          write_msgs_.front().length()),
+        boost::asio::buffer(write_msgs_.front()->data(),
+          write_msgs_.front()->length()),
         [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)

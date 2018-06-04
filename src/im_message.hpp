@@ -719,7 +719,7 @@ private:
 
 //----------------------------------------------------------------------
 
-typedef std::deque<im_message> im_message_queue;
+typedef std::deque<im_message_ptr> im_message_queue;
 
 //----------------------------------------------------------------------
 
