@@ -32,6 +32,7 @@ public:
 
   void start();
   void stop();
+  void disconnect();
 
   // Inherited from im_session_handler_callback.
   //
@@ -43,6 +44,7 @@ public:
   // Inherited from im_client_user_io_handler_callback.
   //
   void connect();
+  bool is_connected();
   void send_message(im_message_ptr im_message_ptr);
 
   // Inherited from im_message_handler_callback.
@@ -77,8 +79,9 @@ private:
   tcp::resolver::iterator endpoint_iterator_;
   im_client_user_io_handler& client_user_io_handler_;
   im_session_ptr im_session_ptr_;
-  std::thread io_service_thread;
+  std::thread io_service_thread_;
   im_message_handler im_message_handler_;
+  bool is_connected_with_server_;
 };
 
 //----------------------------------------------------------------------

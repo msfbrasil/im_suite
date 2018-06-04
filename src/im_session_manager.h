@@ -64,11 +64,13 @@ public:
 private:
   bool is_nickname_already_registered( std::string nickname );
   void register_nickname( im_session_ptr session_ptr, std::string nickname );
+  void unregister_session( im_session_ptr session_ptr );
 
   std::string get_nickname_already_connect_message( std::string nickname );
   std::string get_connection_accepted_message();
   std::string get_destinatary_not_found_message( std::string nickname );
   std::string get_message_accepted_message();
+  std::string get_disconnection_accepted_message();
 
 private:
   boost::mutex sessions_list_mutex;

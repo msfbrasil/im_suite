@@ -35,9 +35,11 @@ void im_client_user_io_handler::start(
   print_help( true );
 }
 
-void im_client_user_io_handler::process_command( 
+bool im_client_user_io_handler::process_command( 
     const std::string command )
 {
+  bool keep_running = true;
+
   if ( !callback_ptr_)
   {
     std::cerr << "IM client user IO handler must be set first!\n";
@@ -93,7 +95,7 @@ void im_client_user_io_handler::process_command(
           //std::cout << "im_client_user_io_handler::process_command -> "
             //"Connecting to server...\n";
           callback_ptr_->connect();
-          //std::cout << "im_client_user_io_handler::process_command -> 
+          //std::cout << "im_client_user_io_handler::process_command -> "
             //"Sending message...\n";
           callback_ptr_->send_message( 
             im_message::build_connect_msg( destinatary ) );
@@ -148,12 +150,21 @@ void im_client_user_io_handler::process_command(
 
       print_next_command_dash();
     }
+    else if ( command.compare( DISCONNECT_CMD ) == 0)
+    {
+      //std::cout << "Processing 'disconnect' command.\n";
+      callback_ptr_->send_message( im_message::build_disconnect_msg() );
+
+      print_next_command_dash();
+    }
     else if ( command.compare( QUIT_CMD ) == 0)
     {
       //std::cout << "Processing 'quit' command.\n";
       callback_ptr_->send_message( im_message::build_disconnect_msg() );
 
       print_next_command_dash();
+
+      keep_running = false;
     }
     else
     {
@@ -162,6 +173,8 @@ void im_client_user_io_handler::process_command(
       print_next_command_dash();
     }
   }
+
+  return keep_running;
 }
 
 void im_client_user_io_handler::print_user_message( 
@@ -246,13 +259,20 @@ void im_client_user_io_handler::print_help(bool with_intro)
     << "already registered with the #\n";
   std::cout << "#       sending message server.                                                #\n";
   std::cout << "#                                                                              #\n";
-  std::cout << "# " << QUIT_CMD << ": this command terminates your connection " 
-    << "with the sending message       #\n";
-  std::cout << "#       server.                                                                #\n";
+  std::cout << "# " << DISCONNECT_CMD << ": this command terminates the current" 
+    << " connection with the sending  #\n";
+  std::cout << "#             message server.                                                  #\n";
   std::cout << "#                                                                              #\n";
-  std::cout << "# It's important to note that \"" << MESSAGE_CMD << "\", \""
-    << LIST_CMD << "\" and \"" << QUIT_CMD << "\" commands can only   #\n";
-  std::cout << "# be executed after a successfull connection with the server.                  #\n";
+  std::cout << "# " << QUIT_CMD << ": this command terminates this application."
+    << "                              #\n";
+  std::cout << "#                                                                              #\n";
+  std::cout << "# Important:                                                                   #\n";
+  std::cout << "# 1- \"" << MESSAGE_CMD << "\", \"" << LIST_CMD << "\" and \"" 
+    << DISCONNECT_CMD << "\" commands can only be executed after a  #\n";
+  std::cout << "#    successfull connection with the server.                                   #\n";
+  std::cout << "# 2- On the other hand, \"" << CONNECT_CMD << "\" and \"" 
+    << QUIT_CMD << "\" commands can only be executed     #\n";
+  std::cout << "#    while the application has no connection established with the server.      #\n";
   std::cout << "#                                                                              #\n";
   std::cout << "# Please, try it out!!!                                                        #\n";
   std::cout << "#                                                                              #\n";
@@ -290,5 +310,6 @@ const std::string im_client_user_io_handler::HELP_CMD = "help";
 const std::string im_client_user_io_handler::CONNECT_CMD = "connect";
 const std::string im_client_user_io_handler::MESSAGE_CMD = "message";
 const std::string im_client_user_io_handler::LIST_CMD = "list";
+const std::string im_client_user_io_handler::DISCONNECT_CMD = "disconnect";
 const std::string im_client_user_io_handler::QUIT_CMD = "quit";
 

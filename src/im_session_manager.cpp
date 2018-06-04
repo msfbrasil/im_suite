@@ -75,9 +75,9 @@ void im_session_manager::send_broadcast( im_message_ptr im_message_ptr,
 void im_session_manager::on_message_received(im_session_ptr im_session_ptr, 
   const im_message& msg)
 {
-  std::cout.write("Received: ", 10);
-  std::cout.write(msg.value(), msg.value_length());
-  std::cout << "\n";
+  //std::cout.write("Received: ", 10);
+  //std::cout.write(msg.value(), msg.value_length());
+  //std::cout << "\n";
   //im_session_ptr->send_message( msg );
   //im_session_ptr->send_message( im_message::build_connect_ack_msg( 
     //get_connection_accepted_message() ) );
@@ -87,7 +87,7 @@ void im_session_manager::on_message_received(im_session_ptr im_session_ptr,
 void im_session_manager::on_error(im_session_ptr im_session_ptr, 
   boost::system::error_code ec)
 {
-  std::cerr << "Communication error: " << ec.category().name()
+  std::cerr << "Communication server error: " << ec.category().name()
     << " -> " << ec.value() << "\n";
   
   remove_session( im_session_ptr );
@@ -134,29 +134,28 @@ void im_session_manager::on_message_msg( im_session_ptr im_session_ptr,
 {
   boost::unique_lock<boost::mutex> scoped_lock( nicknames_mutex );
 
-  std::cout << "Retrieving the destinatary session...\n";
-
   try 
   { 
+    //std::cout << "Retrieving the destinatary session...\n";
     auto destinatary_session = nicknames_sessions_map.at( destinatary_nickname );
-    std::cout << "Destinatary session retrieved: " << destinatary_session << "\n";
+    //std::cout << "Destinatary session retrieved: " << destinatary_session << "\n";
 
-    std::cout << "Registering originator nickname...\n";
+    //std::cout << "Registering originator nickname...\n";
     auto originator_nickname = sessions_nicknames_map.at( im_session_ptr );
-    std::cout << "Originator nickname retrieved: " << originator_nickname << "\n";
+    //std::cout << "Originator nickname retrieved: " << originator_nickname << "\n";
 
-    std::cout << "Sending message to destinatary...\n";
+    //std::cout << "Sending message to destinatary...\n";
     destinatary_session->send_message( 
       im_message::build_message_msg_to_destinatary( 
         originator_nickname, message ) );
 
-    std::cout << "Sending message acknowledge to originator...\n";
+    //std::cout << "Sending message acknowledge to originator...\n";
     im_session_ptr->send_message( im_message::build_message_ack_msg( 
       get_message_accepted_message() ) );
   }
   catch (std::out_of_range e)
   {
-    std::cout << "Destinatary session not found! Sending message refused.\n";
+    //std::cout << "Destinatary session not found! Sending message refused.\n";
     im_session_ptr->send_message( im_message::build_message_ack_msg( 
       get_destinatary_not_found_message( destinatary_nickname ) ) );
   }
@@ -177,7 +176,7 @@ void im_session_manager::on_message_rfsd_msg( im_session_ptr im_session_ptr,
 void im_session_manager::on_list_request_msg( im_session_ptr im_session_ptr )
 {
   boost::unique_lock<boost::mutex> scoped_lock( nicknames_mutex );
-  std::cout << "List request received. Sending the list...\n";
+  //std::cout << "List request received. Sending the list...\n";
   im_session_ptr->send_message( 
     im_message::build_list_response_msg( nicknames_list ) );
 }
@@ -190,7 +189,18 @@ void im_session_manager::on_list_response_msg( im_session_ptr im_session_ptr,
 
 void im_session_manager::on_disconnect_msg( im_session_ptr im_session_ptr )
 {
-
+  //std::cout << "Received disconnect message.\n";
+  //std::cout << "Removing the session from the manager's list.\n";
+  remove_session( im_session_ptr );
+  //std::cout << "Unregister the session and nickname references.\n";
+  unregister_session( im_session_ptr );
+  //std::cout << "Send the disconnect acknowledge so the client can close "
+    //<< "the connection.\n";
+  im_session_ptr->send_message( im_message::build_disconnect_ack_msg( 
+    get_disconnection_accepted_message() ) );
+  //std::cout << "Disconnect session without closing socket (client will do "
+    //<< "that), so the error messages are not shown any more.\n";
+  im_session_ptr->disconnect( false );
 }
 
 void im_session_manager::on_disconnect_ack_msg( im_session_ptr im_session_ptr, 
@@ -235,6 +245,22 @@ void im_session_manager::register_nickname( im_session_ptr session_ptr,
   sessions_nicknames_map.insert( std::pair<im_session_ptr, std::string>( session_ptr, nickname ) );
 }
 
+void im_session_manager::unregister_session( im_session_ptr session_ptr )
+{
+  boost::unique_lock<boost::mutex> scoped_lock( nicknames_mutex );
+  try
+  {
+    auto originator_nickname = sessions_nicknames_map.at( session_ptr );
+    nicknames_list.remove( originator_nickname );
+    nicknames_sessions_map.erase( originator_nickname );
+    sessions_nicknames_map.erase( session_ptr );
+  }
+  catch (std::out_of_range e)
+  {
+    std::cerr << "Error trying to unregister session and user.\n";
+  }
+}
+
 std::string im_session_manager::get_nickname_already_connect_message( 
   std::string nickname )
 {
@@ -257,5 +283,10 @@ std::string im_session_manager::get_destinatary_not_found_message(
 std::string im_session_manager::get_message_accepted_message()
 {
   return "Message successfully delivered.";
+}
+
+std::string im_session_manager::get_disconnection_accepted_message()
+{
+  return "Connection successfully ended.";
 }
 

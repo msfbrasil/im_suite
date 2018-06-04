@@ -22,6 +22,7 @@ class im_client_user_io_handler_callback
 public:
   virtual ~im_client_user_io_handler_callback() {}
   virtual void connect() = 0;
+  virtual bool is_connected() = 0;
   virtual void send_message(im_message_ptr im_message_ptr) = 0;
 };
 
@@ -35,7 +36,7 @@ public:
   im_client_user_io_handler();
 
   void start( im_client_user_io_handler_callback_ptr callback_ptr );
-  void process_command( const std::string command );
+  bool process_command( const std::string command );
   
   void print_user_message( const std::string originator, const std::string message );
   void print_server_message( const std::string message );
@@ -53,6 +54,7 @@ private:
   static const std::string CONNECT_CMD;
   static const std::string MESSAGE_CMD;
   static const std::string LIST_CMD;
+  static const std::string DISCONNECT_CMD;
   static const std::string QUIT_CMD;
 
 private:

@@ -50,6 +50,8 @@ public:
   im_session(socket_ptr socket_ptr);
   void start(im_session_handler_callback_ptr callback_ptr);
   void send_message(im_message_ptr im_message_ptr);
+  bool is_connected() const;
+  void disconnect( bool close_socket );
 
 private:
   void do_read_type();
@@ -62,6 +64,7 @@ private:
   im_session_handler_callback_ptr callback_ptr_;
   im_message read_msg_;
   im_message_queue write_msgs_;
+  bool is_connected_;
 };
 
 //----------------------------------------------------------------------

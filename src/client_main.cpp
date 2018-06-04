@@ -44,7 +44,10 @@ int main(int argc, char* argv[])
     char line[im_message::max_message_length + 1];
     while (std::cin.getline(line, im_message::max_message_length + 1))
     {
-      io_handler.process_command( line );
+      if ( !io_handler.process_command( line ) )
+      {
+        break;
+      }
     }
 
     im_client_ptr->stop();

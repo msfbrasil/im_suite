@@ -20,7 +20,8 @@ using boost::asio::ip::tcp;
 //----------------------------------------------------------------------
 
 im_session::im_session(socket_ptr socket_ptr)
-    : socket_ptr_(socket_ptr)
+    : socket_ptr_(socket_ptr),
+      is_connected_(true)
 {
 }
 
@@ -43,6 +44,20 @@ void im_session::send_message(im_message_ptr im_message_ptr)
   if (!write_in_progress)
   {
     do_write();
+  }
+}
+
+bool im_session::is_connected() const
+{
+  return is_connected_;
+}
+
+void im_session::disconnect( bool close_socket )
+{
+  is_connected_ = false;
+  if ( close_socket )
+  {
+    socket_ptr_->close();
   }
 }
 
@@ -71,7 +86,11 @@ void im_session::do_read_type()
           }
           else
           {
-            callback_ptr_->on_error(self, ec);
+            if ( is_connected_ )
+            {
+              callback_ptr_->on_error(self, ec);
+            }
+            disconnect( true );
           }
         });
   }
@@ -106,6 +125,7 @@ void im_session::do_read_length()
           }
           else
           {
+            disconnect( true );
             callback_ptr_->on_error(self, ec);
           }
         });
@@ -135,6 +155,7 @@ void im_session::do_read_value()
           }
           else
           {
+            disconnect( true );
             callback_ptr_->on_error(self, ec);
           }
         });
@@ -168,6 +189,7 @@ void im_session::do_write()
           }
           else
           {
+            disconnect( true );
             callback_ptr_->on_error(self, ec);
           }
         });
