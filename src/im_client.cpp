@@ -64,8 +64,9 @@ void im_client::connect()
 
 void im_client::send_message(im_message_ptr im_message_ptr)
 {
-  std::cout << "im_client::send_message -> Sending message...\n";
-  std::cout << "im_client::send_message -> Which is: \"" << im_message_ptr->data() << "\"\n";
+  //std::cout << "im_client::send_message -> Sending message...\n";
+  //std::cout << "im_client::send_message -> Which is: \"" 
+    //<< im_message_ptr->data() << "\"\n";
   io_service_.post(
       [this, im_message_ptr]()
       {

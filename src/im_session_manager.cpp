@@ -102,16 +102,16 @@ void im_session_manager::on_connect_msg( im_session_ptr im_session_ptr,
   //
   if ( is_nickname_already_registered( nickname ) )
   {
-    std::cout << "Nickname already registered, sending refuse...\n";
+    //std::cout << "Nickname already registered, sending refuse...\n";
     // TODO: this should result on client disconnection.
     im_session_ptr->send_message( im_message::build_connect_rfsd_msg( 
       get_nickname_already_connect_message( nickname ) ) );
   }
   else
   {
-    std::cout << "Registering new nickname...\n";
+    //std::cout << "Registering new nickname...\n";
     register_nickname( im_session_ptr, nickname );
-    std::cout << "Sending acknowledge...\n";
+    //std::cout << "Sending acknowledge...\n";
     im_session_ptr->send_message( im_message::build_connect_ack_msg( 
       get_connection_accepted_message() ) );
   }

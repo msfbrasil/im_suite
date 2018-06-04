@@ -77,9 +77,11 @@ void im_client_user_io_handler::process_command(
         }
         else
         {
-          std::cout << "im_client_user_io_handler::process_command -> Connecting to server...\n";
+          //std::cout << "im_client_user_io_handler::process_command -> "
+            //"Connecting to server...\n";
           callback_ptr_->connect();
-          std::cout << "im_client_user_io_handler::process_command -> Sending message...\n";
+          //std::cout << "im_client_user_io_handler::process_command -> 
+            //"Sending message...\n";
           callback_ptr_->send_message( 
             im_message::build_connect_msg( destinatary ) );
         }
