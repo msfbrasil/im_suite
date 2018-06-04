@@ -45,10 +45,23 @@ void im_client_user_io_handler::process_command(
   else
   {
     //std::cout << "Received command \"" << command << "\"\n";
-    if ( command.compare( HELP_CMD ) == 0)
+    if ( is_building_msg )
+    {
+      //std::cout << "Processing message body, or command not found.\n";
+      callback_ptr_->send_message( 
+        im_message::build_message_msg_from_originator( 
+          destinatary_nickname, command ) );
+
+      is_building_msg = false;
+
+      print_next_command_dash();
+    }
+    else if ( command.compare( HELP_CMD ) == 0)
     {
       //std::cout << "Processing 'help' command.\n";
       print_help( false );
+
+      print_next_command_dash();
     }
     else if ( boost::starts_with( command, CONNECT_CMD ) )
     {
@@ -58,8 +71,8 @@ void im_client_user_io_handler::process_command(
 
       if ( command_tokens.size() != 2 )
       {
-        std::cout << "The \"" << CONNECT_CMD << "\" command accepts only one " 
-          << "parameter that is the user nickname.\n";
+        std::cout << "# [client] said: The \"" << CONNECT_CMD << "\" command " 
+          << "accepts only one parameter that is the user nickname.\n";
       }
       else
       {
@@ -67,13 +80,13 @@ void im_client_user_io_handler::process_command(
 
         if ( destinatary.empty() )
         {
-          std::cout << "Empty nicknames are not allowed.\n";
+          std::cout << "# [client] said: Empty nicknames are not allowed.\n";
         }
         else if ( destinatary.length() > 
           im_message::max_destinatary_length )
         {
-          std::cout << "The user nickname must not be bigger than \"" 
-            << im_message::max_destinatary_length << "\".\n";
+          std::cout << "# [client] said: The user nickname must not be bigger \""
+            << " than" << im_message::max_destinatary_length << "\".\n";
         }
         else
         {
@@ -86,6 +99,8 @@ void im_client_user_io_handler::process_command(
             im_message::build_connect_msg( destinatary ) );
         }
       }
+
+      print_next_command_dash();
     }
     else if ( boost::starts_with( command, MESSAGE_CMD ) )
     {
@@ -95,8 +110,10 @@ void im_client_user_io_handler::process_command(
 
       if ( command_tokens.size() != 2 )
       {
-        std::cout << "The \"" << MESSAGE_CMD << "\" command accepts only one " 
-          << "parameter that is the destinatary nickname.\n";
+        std::cout << "# [client] said: The \"" << MESSAGE_CMD << "\" command " 
+          << "accepts only one parameter that is the destinatary nickname.\n";
+
+        print_next_command_dash();
       }
       else
       {
@@ -104,18 +121,23 @@ void im_client_user_io_handler::process_command(
 
         if ( destinatary.empty() )
         {
-          std::cout << "Empty nicknames are not allowed.\n";
+          std::cout << "# [client] said: Empty nicknames are not allowed.\n";
+
+          print_next_command_dash();
         }
         else if ( destinatary.length() > 
           im_message::max_destinatary_length )
         {
-          std::cout << "The user nickname must not be bigger than \"" 
-            << im_message::max_destinatary_length << "\".\n";
+          std::cout << "# [client] said: The user nickname must not be bigger \"" 
+            << "than " << im_message::max_destinatary_length << "\".\n";
+
+          print_next_command_dash();
         }
         else
         {
           destinatary_nickname = destinatary;
           is_building_msg = true;
+          std::cout << "# Type message: ";
         }
       }
     }
@@ -123,36 +145,28 @@ void im_client_user_io_handler::process_command(
     {
       //std::cout << "Processing 'list' command.\n";
       callback_ptr_->send_message( im_message::build_list_request_msg() );
+
+      print_next_command_dash();
     }
     else if ( command.compare( QUIT_CMD ) == 0)
     {
       //std::cout << "Processing 'quit' command.\n";
       callback_ptr_->send_message( im_message::build_disconnect_msg() );
+
+      print_next_command_dash();
     }
     else
     {
-      //std::cout << "Processing message body, or command not found.\n";
-      if ( is_building_msg )
-      {
-        callback_ptr_->send_message( 
-          im_message::build_message_msg_from_originator( 
-            destinatary_nickname, command ) );
+      std::cout << "# [client] said: Unrecognized command! Please, try again.\n";
 
-        is_building_msg = false;
-      }
-      else
-      {
-        std::cout << "# [client] said: Unrecognized command! Please, try again.\n";
-      }
+      print_next_command_dash();
     }
   }
-  print_next_command_dash();
 }
 
 void im_client_user_io_handler::print_user_message( 
   const std::string originator, const std::string message )
 {
-  //std::cout << "\n";
   std::cout << "[" << originator << "] said: " << message << "\n";
   print_next_command_dash();
 }
@@ -160,7 +174,6 @@ void im_client_user_io_handler::print_user_message(
 void im_client_user_io_handler::print_server_message( 
   const std::string message )
 {
-  //std::cout << "\n";
   std::cout << "[server] said: " << message << "\n";
   print_next_command_dash();
 }
@@ -168,7 +181,6 @@ void im_client_user_io_handler::print_server_message(
 void im_client_user_io_handler::print_nicknames_list( 
   const std::vector<std::string> nicknames_list )
 {
-  //std::cout << "\n";
   std::cout << "[server] said: Available users list \n";
   for ( auto nickname : nicknames_list )
   {
@@ -180,7 +192,6 @@ void im_client_user_io_handler::print_nicknames_list(
 void im_client_user_io_handler::print_error(const std::string prefix, 
   boost::system::error_code ec)
 {
-  //std::cout << "\n";
   std::cerr << "[error]: " << prefix << ec.category().name() 
     << " -> " << ec.value() << "\n";
   print_next_command_dash();
@@ -266,7 +277,6 @@ std::vector<std::string> im_client_user_io_handler::extract_command_tokens(
 
 void im_client_user_io_handler::print_next_command_dash()
 {
-  //std::cout << "\n";
   std::cout << "# ";
   std::cout.flush();
 }
