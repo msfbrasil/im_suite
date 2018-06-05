@@ -86,7 +86,6 @@ private:
   boost::mutex nicknames_resources_mutex;
   std::list<std::string> nicknames_list;
   std::map<std::string, im_session_ptr> nicknames_sessions_map;
-  std::map<im_session_ptr, std::string> sessions_nicknames_map;
 
   im_message_handler im_message_handler_;
 };

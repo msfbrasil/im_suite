@@ -125,8 +125,6 @@ void im_session_manager::on_connect_msg( im_session_ptr im_session_ptr,
       //<< get_nicknames_list_size() << ".\n";
     //std::cout << "nicknames_sessions_map size is: " 
       //<< get_nicknames_sessions_map_size() << ".\n";
-    //std::cout << "sessions_nicknames_map size is: " 
-      //<< get_sessions_nicknames_map_size() << ".\n";
   }
 }
 
@@ -153,14 +151,10 @@ void im_session_manager::on_message_msg( im_session_ptr im_session_ptr,
     auto destinatary_session = nicknames_sessions_map.at( destinatary_nickname );
     //std::cout << "Destinatary session retrieved: " << destinatary_session << "\n";
 
-    //std::cout << "Registering originator nickname...\n";
-    auto originator_nickname = sessions_nicknames_map.at( im_session_ptr );
-    //std::cout << "Originator nickname retrieved: " << originator_nickname << "\n";
-
     //std::cout << "Sending message to destinatary...\n";
     destinatary_session->send_message( 
       im_message::build_message_msg_to_destinatary( 
-        originator_nickname, message ) );
+        im_session_ptr->get_session_owner(), message ) );
 
     //std::cout << "Sending message acknowledge to originator...\n";
     im_session_ptr->send_message( im_message::build_message_ack_msg( 
@@ -249,12 +243,14 @@ void im_session_manager::register_nickname( im_session_ptr session_ptr,
   //std::cout << "Adding the session to the sessions's list.\n";
   add_session( session_ptr );
 
+  //std::cout << "Setting the session owner.\n";
+  session_ptr->set_session_owner( nickname );
+
   //std::cout << "Register the session and nickname references.\n";
   {
     boost::unique_lock<boost::mutex> scoped_lock( nicknames_resources_mutex );
     nicknames_list.push_back( nickname );
     nicknames_sessions_map.insert( std::pair<std::string, im_session_ptr>( nickname, session_ptr ) );
-    sessions_nicknames_map.insert( std::pair<im_session_ptr, std::string>( session_ptr, nickname ) );
   }
 }
 
@@ -272,14 +268,13 @@ void im_session_manager::unregister_session( im_session_ptr session_ptr )
     boost::unique_lock<boost::mutex> scoped_lock( nicknames_resources_mutex );
     try
     {
-      auto originator_nickname = sessions_nicknames_map.at( session_ptr );
-      nicknames_list.remove( originator_nickname );
-      nicknames_sessions_map.erase( originator_nickname );
-      sessions_nicknames_map.erase( session_ptr );
+      nicknames_list.remove( session_ptr->get_session_owner() );
+      nicknames_sessions_map.erase( session_ptr->get_session_owner() );
 
       //std::cout << "Sending user logged out broadcast...\n";
       send_broadcast( im_message::build_broadcast_msg( 
-        get_logged_out_broadcast_message( originator_nickname ) ) );
+        get_logged_out_broadcast_message( 
+          session_ptr->get_session_owner() ) ) );
     }
     catch (std::out_of_range e)
     {
@@ -293,8 +288,6 @@ void im_session_manager::unregister_session( im_session_ptr session_ptr )
     //<< get_nicknames_list_size() << ".\n";
   //std::cout << "nicknames_sessions_map size is: " 
     //<< get_nicknames_sessions_map_size() << ".\n";
-  //std::cout << "sessions_nicknames_map size is: " 
-    //<< get_sessions_nicknames_map_size() << ".\n";
 }
 
 std::string im_session_manager::get_nickname_already_connect_message( 
@@ -356,11 +349,5 @@ int im_session_manager::get_nicknames_sessions_map_size()
 {
   boost::unique_lock<boost::mutex> scoped_lock( nicknames_resources_mutex );
   return nicknames_sessions_map.size();
-}
-
-int im_session_manager::get_sessions_nicknames_map_size()
-{
-  boost::unique_lock<boost::mutex> scoped_lock( nicknames_resources_mutex );
-  return sessions_nicknames_map.size();
 }
 

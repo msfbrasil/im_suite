@@ -62,6 +62,16 @@ void im_session::disconnect( bool close_socket )
   }
 }
 
+void im_session::set_session_owner( const std::string session_owner )
+{
+  session_owner_ = session_owner;
+}
+
+std::string im_session::get_session_owner() const
+{
+  return session_owner_;
+}
+
 //----------------------------------------------------------------------
 // Private methods.
 //----------------------------------------------------------------------
