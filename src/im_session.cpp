@@ -37,6 +37,7 @@ void im_session::start(im_session_handler_callback_ptr callback_ptr)
 
 void im_session::send_message(im_message_ptr im_message_ptr)
 {
+  boost::unique_lock<boost::mutex> scoped_lock( write_msgs_mutex_ );
   //std::cout << "im_session::send_message -> Sending message...\n";
   bool write_in_progress = !write_msgs_.empty();
   //std::cout << "Pushed back message: \"" << im_message_ptr->data() << "\"\n";
@@ -181,6 +182,7 @@ void im_session::do_write()
         {
           if (!ec)
           {
+            boost::unique_lock<boost::mutex> scoped_lock( write_msgs_mutex_ );
             write_msgs_.pop_front();
             if (!write_msgs_.empty())
             {

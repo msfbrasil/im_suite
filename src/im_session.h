@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <memory>
 #include <boost/asio.hpp>
+#include <boost/thread/mutex.hpp>
 #include "im_message.hpp"
 
 using boost::asio::ip::tcp;
@@ -64,6 +65,7 @@ private:
   im_session_handler_callback_ptr callback_ptr_;
   im_message read_msg_;
   im_message_queue write_msgs_;
+  boost::mutex write_msgs_mutex_;
   bool is_connected_;
 };
 
