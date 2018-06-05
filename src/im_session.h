@@ -16,6 +16,7 @@
 #include <boost/asio.hpp>
 #include <boost/thread/mutex.hpp>
 #include "im_message.hpp"
+#include "im_message_subscriber.h"
 
 using boost::asio::ip::tcp;
 
@@ -45,7 +46,8 @@ typedef std::shared_ptr<im_session_handler_callback> im_session_handler_callback
 //----------------------------------------------------------------------
 
 class im_session
-  : public std::enable_shared_from_this<im_session>
+  : public std::enable_shared_from_this<im_session>,
+    public im_message_subscriber
 {
 public:
   im_session(socket_ptr socket_ptr);
@@ -55,6 +57,10 @@ public:
   void disconnect( bool close_socket );
   void set_session_owner( const std::string session_owner );
   std::string get_session_owner() const;
+
+  // Inherited from im_message_subscriber.
+  //
+  void process_message( im_message_ptr im_message_ptr );
 
 private:
   void do_read_type();

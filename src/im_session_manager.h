@@ -13,13 +13,15 @@
 #include <boost/thread/mutex.hpp>
 #include "im_session.h"
 #include "im_message_handler.h"
+#include "im_message_publisher.h"
 
 //----------------------------------------------------------------------
 
 class im_session_manager 
   : public std::enable_shared_from_this<im_session_manager>,
     public im_session_handler_callback, 
-    public im_message_handler_callback
+    public im_message_handler_callback,
+    public im_message_publisher
 {
 public:
   im_session_manager();
@@ -27,9 +29,9 @@ public:
   void start();
   void add_session( im_session_ptr im_session_ptr );
   void remove_session( im_session_ptr im_session_ptr );
-  void send_broadcast( im_message_ptr im_message_ptr );
-  void send_broadcast( im_message_ptr im_message_ptr, 
-    std::string skip_nickname );
+  //void send_broadcast( im_message_ptr im_message_ptr );
+  //void send_broadcast( im_message_ptr im_message_ptr, 
+    //std::string skip_nickname );
 
   // Inherited from im_session_handler_callback.
   //
@@ -65,6 +67,8 @@ private:
   bool is_nickname_already_registered( std::string nickname );
   void register_nickname( im_session_ptr session_ptr, std::string nickname );
   void unregister_session( im_session_ptr session_ptr );
+  void subscribe_session( im_session_ptr session_ptr );
+  void unsubscribe_session( im_session_ptr session_ptr );
 
   std::string get_nickname_already_connect_message( std::string nickname );
   std::string get_connection_accepted_message();

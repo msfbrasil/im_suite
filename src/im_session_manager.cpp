@@ -38,6 +38,7 @@ void im_session_manager::remove_session( im_session_ptr im_session_ptr )
   sessions_list.remove( im_session_ptr );
 }
 
+/*
 void im_session_manager::send_broadcast( im_message_ptr im_message_ptr )
 {
   boost::unique_lock<boost::mutex> scoped_lock( sessions_list_mutex );
@@ -69,6 +70,7 @@ void im_session_manager::send_broadcast( im_message_ptr im_message_ptr,
     }
   }
 }
+*/
 
 //----------------------------------------------------------------------
 
@@ -92,6 +94,7 @@ void im_session_manager::on_error(im_session_ptr im_session_ptr,
   std::cout << "Client disconnected. Let's clear all session references.\n";
   
   unregister_session( im_session_ptr );
+  unsubscribe_session( im_session_ptr );
 }
 
 //----------------------------------------------------------------------
@@ -105,19 +108,29 @@ void im_session_manager::on_connect_msg( im_session_ptr im_session_ptr,
   {
     //std::cout << "Nickname already registered, sending refuse...\n";
     // TODO: this should result on client disconnection.
-    im_session_ptr->send_message( im_message::build_connect_rfsd_msg( 
-      get_nickname_already_connect_message( nickname ) ) );
+    //im_session_ptr->send_message( im_message::build_connect_rfsd_msg( 
+      //get_nickname_already_connect_message( nickname ) ) );
+    publish_message( nickname, im_session_ptr, 
+      im_message::build_connect_rfsd_msg( 
+        get_nickname_already_connect_message( nickname ) ) );
   }
   else
   {
     //std::cout << "Registering new nickname...\n";
     register_nickname( im_session_ptr, nickname );
+    subscribe_session( im_session_ptr );
     //std::cout << "Sending acknowledge...\n";
-    im_session_ptr->send_message( im_message::build_connect_ack_msg( 
-      get_connection_accepted_message() ) );
+    //im_session_ptr->send_message( im_message::build_connect_ack_msg( 
+      //get_connection_accepted_message() ) );
+    publish_message( nickname, im_session_ptr, 
+      im_message::build_connect_ack_msg( 
+        get_connection_accepted_message() ) );
     //std::cout << "Sending user logged in broadcast...\n";
-    send_broadcast( im_message::build_broadcast_msg( 
-      get_logged_in_broadcast_message( nickname ) ), nickname );
+    //send_broadcast( im_message::build_broadcast_msg( 
+      //get_logged_in_broadcast_message( nickname ) ), nickname );
+    publish_message( BROADCAST_TOPIC, im_session_ptr, 
+      im_message::build_broadcast_msg( 
+        get_logged_in_broadcast_message( nickname ) ) );
 
     //std::cout << "sessions_list size is: " 
       //<< get_sessions_list_size() << ".\n";
@@ -152,19 +165,28 @@ void im_session_manager::on_message_msg( im_session_ptr im_session_ptr,
     //std::cout << "Destinatary session retrieved: " << destinatary_session << "\n";
 
     //std::cout << "Sending message to destinatary...\n";
-    destinatary_session->send_message( 
-      im_message::build_message_msg_to_destinatary( 
+    //destinatary_session->send_message( 
+      //im_message::build_message_msg_to_destinatary( 
+        //im_session_ptr->get_session_owner(), message ) );
+    publish_message( destinatary_session->get_session_owner(), 
+      destinatary_session, im_message::build_message_msg_to_destinatary( 
         im_session_ptr->get_session_owner(), message ) );
 
     //std::cout << "Sending message acknowledge to originator...\n";
-    im_session_ptr->send_message( im_message::build_message_ack_msg( 
-      get_message_accepted_message() ) );
+    //im_session_ptr->send_message( im_message::build_message_ack_msg( 
+      //get_message_accepted_message() ) );
+    publish_message( im_session_ptr->get_session_owner(), im_session_ptr, 
+      im_message::build_message_ack_msg( 
+        get_message_accepted_message() ) );
   }
   catch (std::out_of_range e)
   {
     //std::cout << "Destinatary session not found! Sending message refused.\n";
-    im_session_ptr->send_message( im_message::build_message_ack_msg( 
-      get_destinatary_not_found_message( destinatary_nickname ) ) );
+    //im_session_ptr->send_message( im_message::build_message_ack_msg( 
+      //get_destinatary_not_found_message( destinatary_nickname ) ) );
+    publish_message( im_session_ptr->get_session_owner(), im_session_ptr, 
+      im_message::build_message_rfsd_msg( 
+        get_destinatary_not_found_message( destinatary_nickname ) ) );
   }
 }
 
@@ -184,7 +206,9 @@ void im_session_manager::on_list_request_msg( im_session_ptr im_session_ptr )
 {
   boost::unique_lock<boost::mutex> scoped_lock( nicknames_resources_mutex );
   //std::cout << "List request received. Sending the list...\n";
-  im_session_ptr->send_message( 
+  //im_session_ptr->send_message( 
+    //im_message::build_list_response_msg( nicknames_list ) );
+  publish_message( im_session_ptr->get_session_owner(), im_session_ptr, 
     im_message::build_list_response_msg( nicknames_list ) );
 }
 
@@ -200,8 +224,12 @@ void im_session_manager::on_disconnect_msg( im_session_ptr im_session_ptr )
   unregister_session( im_session_ptr );
   //std::cout << "Send the disconnect acknowledge so the client can close "
     //<< "the connection.\n";
-  im_session_ptr->send_message( im_message::build_disconnect_ack_msg( 
-    get_disconnection_accepted_message() ) );
+  //im_session_ptr->send_message( im_message::build_disconnect_ack_msg( 
+    //get_disconnection_accepted_message() ) );
+  publish_message( im_session_ptr->get_session_owner(), im_session_ptr, 
+    im_message::build_disconnect_ack_msg( 
+      get_disconnection_accepted_message() ) );
+  unsubscribe_session( im_session_ptr );
 }
 
 void im_session_manager::on_disconnect_ack_msg( im_session_ptr im_session_ptr, 
@@ -250,7 +278,8 @@ void im_session_manager::register_nickname( im_session_ptr session_ptr,
   {
     boost::unique_lock<boost::mutex> scoped_lock( nicknames_resources_mutex );
     nicknames_list.push_back( nickname );
-    nicknames_sessions_map.insert( std::pair<std::string, im_session_ptr>( nickname, session_ptr ) );
+    nicknames_sessions_map.insert( std::pair<std::string, im_session_ptr>( 
+      nickname, session_ptr ) );
   }
 }
 
@@ -272,9 +301,13 @@ void im_session_manager::unregister_session( im_session_ptr session_ptr )
       nicknames_sessions_map.erase( session_ptr->get_session_owner() );
 
       //std::cout << "Sending user logged out broadcast...\n";
-      send_broadcast( im_message::build_broadcast_msg( 
-        get_logged_out_broadcast_message( 
-          session_ptr->get_session_owner() ) ) );
+      //send_broadcast( im_message::build_broadcast_msg( 
+        //get_logged_out_broadcast_message( 
+          //session_ptr->get_session_owner() ) ) );
+      publish_message( BROADCAST_TOPIC, session_ptr, 
+        im_message::build_broadcast_msg( 
+          get_logged_out_broadcast_message( 
+            session_ptr->get_session_owner() ) ) );
     }
     catch (std::out_of_range e)
     {
@@ -288,6 +321,20 @@ void im_session_manager::unregister_session( im_session_ptr session_ptr )
     //<< get_nicknames_list_size() << ".\n";
   //std::cout << "nicknames_sessions_map size is: " 
     //<< get_nicknames_sessions_map_size() << ".\n";
+}
+
+void im_session_manager::subscribe_session( im_session_ptr session_ptr )
+{
+  //std::cout << "Subscribe to nickname and broadcast.\n";
+  subscribe( session_ptr->get_session_owner(), session_ptr );
+  subscribe( BROADCAST_TOPIC, session_ptr );
+}
+
+void im_session_manager::unsubscribe_session( im_session_ptr session_ptr )
+{
+  //std::cout << "Unsubscribe to nickname and broadcast.\n";
+  unsubscribe( session_ptr->get_session_owner(), session_ptr );
+  unsubscribe( BROADCAST_TOPIC, session_ptr );
 }
 
 std::string im_session_manager::get_nickname_already_connect_message( 

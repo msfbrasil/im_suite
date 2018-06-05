@@ -73,6 +73,13 @@ std::string im_session::get_session_owner() const
 }
 
 //----------------------------------------------------------------------
+
+void im_session::process_message( im_message_ptr im_message_ptr )
+{
+  send_message( im_message_ptr );
+}
+
+//----------------------------------------------------------------------
 // Private methods.
 //----------------------------------------------------------------------
 
