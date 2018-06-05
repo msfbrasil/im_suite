@@ -15,6 +15,7 @@
 #include "im_client_user_io_handler.h"
 #include "im_message.hpp"
 #include "string_trim.h"
+#include "im_message_publisher.h"
 
 //----------------------------------------------------------------------
 // Constructor
@@ -95,6 +96,15 @@ bool im_client_user_io_handler::process_command(
           {
             std::cout << "# [client] said: The user nickname must not be bigger \""
               << " than" << im_message::max_destinatary_length << "\".\n";
+          }
+          // TODO: Find a better way to handle constants without cross 
+          //       referencing like this.
+          else if ( destinatary.compare( 
+            im_message_publisher::BROADCAST_TOPIC ) == 0 )
+          {
+            std::cout << "# [client] said: The term \"" 
+              << im_message_publisher::BROADCAST_TOPIC 
+              << "\" can't be used as the nickname.\n";
           }
           else
           {
