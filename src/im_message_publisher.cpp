@@ -37,8 +37,8 @@ void im_message_publisher::subscribe(
       std::pair<std::string, subscribers_ptr_list>( 
         topic, subscribers_list ) );
 
-    std::cout << "subscribers_list size for topic \"" << topic << "\" is: " 
-      << subscribers_list.size() << ".\n";
+    //std::cout << "subscribers_list size for topic \"" << topic << "\" is: " 
+      //<< subscribers_list.size() << ".\n";
   }
   catch (std::out_of_range e)
   {
@@ -49,12 +49,12 @@ void im_message_publisher::subscribe(
       std::pair<std::string, subscribers_ptr_list>( 
         topic, subscribers_list ) );
 
-    std::cout << "new subscribers_list size for topic \"" << topic << "\" is: " 
-      << subscribers_list.size() << ".\n";
+    //std::cout << "new subscribers_list size for topic \"" << topic << "\" is: " 
+      //<< subscribers_list.size() << ".\n";
   }
 
-  std::cout << "subscribers_list_map size is: " 
-    << subscribers_list_map.size() << ".\n";
+  //std::cout << "subscribers_list_map size is: " 
+    //<< subscribers_list_map.size() << ".\n";
 }
 
 void im_message_publisher::unsubscribe( 
@@ -78,8 +78,8 @@ void im_message_publisher::unsubscribe(
           topic, subscribers_list ) );
     }
 
-    std::cout << "subscribers_list size for topic \"" << topic << "\" is: " 
-      << subscribers_list.size() << ".\n";
+    //std::cout << "subscribers_list size for topic \"" << topic << "\" is: " 
+      //<< subscribers_list.size() << ".\n";
   }
   catch (std::out_of_range e)
   {
@@ -88,8 +88,8 @@ void im_message_publisher::unsubscribe(
       << "\" could not be found.";
   }
 
-  std::cout << "subscribers_list_map size is: " 
-    << subscribers_list_map.size() << ".\n";
+  //std::cout << "subscribers_list_map size is: " 
+    //<< subscribers_list_map.size() << ".\n";
 }
 
 void im_message_publisher::publish_message( std::string topic, 
@@ -99,23 +99,23 @@ void im_message_publisher::publish_message( std::string topic,
   try
   {
     auto subscribers_list = subscribers_list_map.at( topic );
-    std::cout << "subscribers_list size for topic \"" << topic << "\" is: " 
-      << subscribers_list.size() << ".\n";
+    //std::cout << "subscribers_list size for topic \"" << topic << "\" is: " 
+      //<< subscribers_list.size() << ".\n";
     for ( auto subscriber : subscribers_list )
     {
-      std::shared_ptr<im_session> session_ptr = 
-        std::static_pointer_cast<im_session>(subscriber);
+      //std::shared_ptr<im_session> session_ptr = 
+        //std::static_pointer_cast<im_session>(subscriber);
       if ( ( topic.compare( BROADCAST_TOPIC ) != 0 ) 
         || ( subscriber_ptr != subscriber ) )
       {
-        std::cout << "Sending message to subscriber " 
-          << session_ptr->get_session_owner() << ".\n";
+        //std::cout << "Sending message to subscriber " 
+          //<< session_ptr->get_session_owner() << ".\n";
         subscriber->process_message( im_message_ptr );
       }
       else
       {
-        std::cout << "Message to subscriber " 
-          << session_ptr->get_session_owner() << " won't be sent.\n";
+        //std::cout << "Message to subscriber " 
+          //<< session_ptr->get_session_owner() << " won't be sent.\n";
       }
     }
   }
