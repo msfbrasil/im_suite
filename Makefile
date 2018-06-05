@@ -8,7 +8,7 @@ TARGET2 := bin/im_server
 
 SRCEXT := cpp
 OBJECTS1 := $(BUILDDIR)/client_main.o $(BUILDDIR)/im_session.o $(BUILDDIR)/im_client_user_io_handler.o $(BUILDDIR)/im_message_handler.o $(BUILDDIR)/im_client.o
-OBJECTS2 := $(BUILDDIR)/server_main.o $(BUILDDIR)/im_session.o $(BUILDDIR)/im_session_manager.o $(BUILDDIR)/im_message_handler.o $(BUILDDIR)/im_message_publisher.o $(BUILDDIR)/im_server.o
+OBJECTS2 := $(BUILDDIR)/server_main.o $(BUILDDIR)/im_session.o $(BUILDDIR)/im_session_manager.o $(BUILDDIR)/im_message_handler.o $(BUILDDIR)/im_message_publisher.o $(BUILDDIR)/logger.o $(BUILDDIR)/im_server.o
 CFLAGS := -std=c++11
 LIB1 := -lboost_system -lboost_thread -lboost_serialization -lpthread
 LIB2 := -lboost_system -lboost_thread -lboost_serialization

@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include "im_session_manager.h"
+#include "logger.h"
 
 //----------------------------------------------------------------------
 // Constructor
@@ -55,6 +56,10 @@ void im_session_manager::on_error(im_session_ptr im_session_ptr,
   
   unregister_session( im_session_ptr );
   unsubscribe_session( im_session_ptr );
+
+  Logger::instance().log( Logger::INFO_LEVEL, 
+    "Connection with user with nickname \"" 
+    + im_session_ptr->get_session_owner() + "\" was lost." );
 }
 
 //----------------------------------------------------------------------
@@ -83,6 +88,9 @@ void im_session_manager::on_connect_msg( im_session_ptr im_session_ptr,
     publish_message( BROADCAST_TOPIC, im_session_ptr, 
       im_message::build_broadcast_msg( 
         get_logged_in_broadcast_message( nickname ) ) );
+
+    Logger::instance().log( Logger::INFO_LEVEL, 
+      "User with nickname \"" + nickname + "\" has logged in." );
 
     //std::cout << "sessions_list size is: " 
       //<< get_sessions_list_size() << ".\n";
@@ -125,6 +133,11 @@ void im_session_manager::on_message_msg( im_session_ptr im_session_ptr,
     publish_message( im_session_ptr->get_session_owner(), im_session_ptr, 
       im_message::build_message_ack_msg( 
         get_message_accepted_message() ) );
+
+    Logger::instance().log( Logger::INFO_LEVEL, 
+      "Message [" + message + "] sent from user \"" 
+      + im_session_ptr->get_session_owner() + "\" to user \"" 
+      + destinatary_session->get_session_owner() + "\"." );
   }
   catch (std::out_of_range e)
   {
@@ -171,6 +184,10 @@ void im_session_manager::on_disconnect_msg( im_session_ptr im_session_ptr )
     im_message::build_disconnect_ack_msg( 
       get_disconnection_accepted_message() ) );
   unsubscribe_session( im_session_ptr );
+
+  Logger::instance().log( Logger::INFO_LEVEL, 
+    "User with nickname \"" 
+    + im_session_ptr->get_session_owner() + "\" has logged out." );
 }
 
 void im_session_manager::on_disconnect_ack_msg( im_session_ptr im_session_ptr, 
