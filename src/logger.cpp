@@ -146,7 +146,7 @@ Logger::Logger()
 //----------------------------------------------------------------------
 
 void Logger::log(const string& logLevel, const std::string& file, 
-  const std::string& line, const string& message)
+  const int& line, const string& message)
 {
   boost::unique_lock<boost::mutex> scoped_lock( sMutex );
   logImpl(logLevel, file, line, message);
@@ -157,7 +157,7 @@ void Logger::log(const string& logLevel, const std::string& file,
 //----------------------------------------------------------------------
 
 void Logger::logImpl(const std::string& logLevel, const std::string& file, 
-    const std::string& line, const std::string& message)
+    const int& line, const std::string& message)
 {
   //boost::posix_time::time_facet tf(1);
   //tf.set_iso_extended_format();

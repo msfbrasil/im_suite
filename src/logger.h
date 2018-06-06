@@ -26,7 +26,7 @@ class LogEntry
 {
   public:
     LogEntry(const std::string& logLevel, const std::string& file, 
-      const std::string& line, const std::string& message) : 
+      const int& line, const std::string& message) : 
       logLevel_(logLevel),
       file_(file),
       line_(line),
@@ -44,7 +44,7 @@ class LogEntry
       return file_;
     }
 
-    std::string getLine() const
+    int getLine() const
     {
       return line_;
     }
@@ -57,7 +57,7 @@ class LogEntry
   private:
     std::string logLevel_;
     std::string file_;
-    std::string line_;
+    int line_;
     std::string message_;
 };
 
@@ -104,7 +104,7 @@ public:
   static Logger& instance();
 
   void log(const std::string& logLevel, const std::string& file, 
-    const std::string& line, const std::string& inMessage);
+    const int& line, const std::string& inMessage);
 
 protected:
   static Logger* m_pInstance;
@@ -121,7 +121,7 @@ protected:
   // Enqueues messages on the worker thread.
   //
   void logImpl(const std::string& logLevel, const std::string& file, 
-    const std::string& line, const std::string& inMessage);
+    const int& line, const std::string& inMessage);
 
 private:
   Logger();
