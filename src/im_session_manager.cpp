@@ -57,6 +57,10 @@ void im_session_manager::on_error(im_session_ptr im_session_ptr,
   unregister_session( im_session_ptr );
   unsubscribe_session( im_session_ptr );
 
+  //std::cout << "Disconnect session without closing socket, so the error "
+    //<< "messages are not shown any more if it's a manual disconnect.\n";
+  im_session_ptr->disconnect( false );
+
   LOG_INFO( "Connection with user with nickname \"" 
     + im_session_ptr->get_session_owner() + "\" was lost." );
 }
@@ -180,6 +184,11 @@ void im_session_manager::on_disconnect_msg( im_session_ptr im_session_ptr )
   publish_message( im_session_ptr->get_session_owner(), im_session_ptr, 
     im_message::build_disconnect_ack_msg( 
       get_disconnection_accepted_message() ) );
+
+  //std::cout << "Disconnect session without closing socket, so the error "
+    //<< "messages are not shown any more if it's a manual disconnect.\n";
+  im_session_ptr->disconnect( false );
+
   unsubscribe_session( im_session_ptr );
 
   LOG_INFO( "User with nickname \"" 
@@ -241,10 +250,6 @@ void im_session_manager::unregister_session( im_session_ptr session_ptr )
 {
   //std::cout << "Removing the session from the sessions's list.\n";
   remove_session( session_ptr );
-
-  //std::cout << "Disconnect session without closing socket, so the error "
-    //<< "messages are not shown any more if it's a manual disconnect.\n";
-  session_ptr->disconnect( false );
 
   //std::cout << "Unregister the session and nickname references.\n";
   {
