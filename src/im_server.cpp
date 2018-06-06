@@ -14,6 +14,7 @@
 #include <boost/asio.hpp>
 #include "im_server.h"
 #include "im_session.h"
+#include "logger.h"
 
 using boost::asio::ip::tcp;
 
@@ -29,6 +30,7 @@ im_server::im_server(boost::asio::io_service& io_service,
   im_session_manager_ptr_ = std::make_shared<im_session_manager>();
   im_session_manager_ptr_->start();
   do_accept();
+  Logger::instance();
 }
 
 //----------------------------------------------------------------------
