@@ -44,11 +44,11 @@ void LogWorker::start()
   boost::unique_lock<boost::mutex> scoped_lock( m_workerMutex );
   while ( !m_workerIsDone )
   {
-    std::cout << "Waiting for a message to log...\n";
+    //std::cout << "Waiting for a message to log...\n";
     m_conditionVariable.wait(scoped_lock);
     for ( auto logEntry : m_logQueue )
     {
-      std::cout << "Processing message...\n";
+      //std::cout << "Processing message...\n";
       m_logFileOutputStream << getLogFormattedDateTime() << " | " 
         << logEntry->getLogLevel() << " | " << logEntry->getFile() 
         << ":" << logEntry->getLine() << " | " 
