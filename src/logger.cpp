@@ -8,6 +8,9 @@
 #include <stdexcept>
 #include <boost/date_time.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
+#include <iostream>
+#include <locale>
+#include <sstream>
 #include "logger.h"
 
 using namespace std;
@@ -17,6 +20,9 @@ using namespace std;
 //----------------------------------------------------------------------
 
 const char* const LogWorker::m_logFileName = "server.log";
+
+static boost::local_time::time_zone_ptr const utc_time_zone( 
+  new boost::local_time::posix_time_zone( "GMT" ) );
 
 LogWorker::LogWorker() : 
   m_workerIsDone( false )
@@ -43,8 +49,10 @@ void LogWorker::start()
     for ( auto logEntry : m_logQueue )
     {
       std::cout << "Processing message...\n";
-      m_logFileOutputStream << logEntry->getLogLevel() 
-        << " -> " << logEntry->getMessage() << std::endl;
+      m_logFileOutputStream << getLogFormattedDateTime() << " | " 
+        << logEntry->getLogLevel() << " | " << logEntry->getFile() 
+        << ":" << logEntry->getLine() << " | " 
+        << logEntry->getMessage() << std::endl;
     }
     m_logQueue.clear();
   }
@@ -62,6 +70,23 @@ void LogWorker::enqueueLog( LogEntryPtr pLogEntry )
   boost::unique_lock<boost::mutex> scoped_lock( m_workerMutex );
   m_logQueue.push_back( pLogEntry );
   m_conditionVariable.notify_one();
+}
+
+std::string LogWorker::getLogFormattedDateTime()
+{
+    boost::local_time::local_time_facet *pTimeFacet = 
+      new boost::local_time::local_time_facet();
+    pTimeFacet->set_iso_extended_format();
+
+    boost::posix_time::ptime my_ptime = 
+      boost::posix_time::second_clock::universal_time();
+    boost::local_time::local_date_time now(my_ptime, utc_time_zone);
+
+    std::ostringstream date_osstr;
+    date_osstr.imbue(std::locale(date_osstr.getloc(), pTimeFacet));
+    date_osstr << now;
+
+    return date_osstr.str();
 }
 
 
@@ -120,23 +145,25 @@ Logger::Logger()
 // Public methods.
 //----------------------------------------------------------------------
 
-void Logger::log(const string& logLevel, const string& message)
+void Logger::log(const string& logLevel, const std::string& file, 
+  const std::string& line, const string& message)
 {
   boost::unique_lock<boost::mutex> scoped_lock( sMutex );
-  logImpl(logLevel, message);
+  logImpl(logLevel, file, line, message);
 }
 
 //----------------------------------------------------------------------
 // Private methods.
 //----------------------------------------------------------------------
 
-void Logger::logImpl(const std::string& logLevel, const std::string& message)
+void Logger::logImpl(const std::string& logLevel, const std::string& file, 
+    const std::string& line, const std::string& message)
 {
   //boost::posix_time::time_facet tf(1);
   //tf.set_iso_extended_format();
   //locale loc = locale(locale("pt_BR"), tf);
   //cout.imbue(loc)
   m_pInstance->m_logWorker.enqueueLog( 
-    std::make_shared<LogEntry>( logLevel, message ) );
+    std::make_shared<LogEntry>( logLevel, file, line, message ) );
 }
 

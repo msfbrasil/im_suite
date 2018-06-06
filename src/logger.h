@@ -25,9 +25,11 @@
 class LogEntry
 {
   public:
-    LogEntry(const std::string& logLevel, 
-      const std::string& message) : 
+    LogEntry(const std::string& logLevel, const std::string& file, 
+      const std::string& line, const std::string& message) : 
       logLevel_(logLevel),
+      file_(file),
+      line_(line),
       message_(message)
     {
     }
@@ -37,6 +39,16 @@ class LogEntry
       return logLevel_;
     }
 
+    std::string getFile() const
+    {
+      return file_;
+    }
+
+    std::string getLine() const
+    {
+      return line_;
+    }
+
     std::string getMessage() const
     {
       return message_;
@@ -44,6 +56,8 @@ class LogEntry
   
   private:
     std::string logLevel_;
+    std::string file_;
+    std::string line_;
     std::string message_;
 };
 
@@ -62,6 +76,9 @@ class LogWorker
     void start();
     void stop();
     void enqueueLog( LogEntryPtr pLogEntry );
+  
+  protected:
+    std::string getLogFormattedDateTime();
 
   private:
     static const char* const m_logFileName;
@@ -86,8 +103,8 @@ public:
 
   static Logger& instance();
 
-  void log(const std::string& logLevel, 
-    const std::string& inMessage);
+  void log(const std::string& logLevel, const std::string& file, 
+    const std::string& line, const std::string& inMessage);
 
 protected:
   static Logger* m_pInstance;
@@ -103,8 +120,8 @@ protected:
 
   // Enqueues messages on the worker thread.
   //
-  void logImpl(const std::string& logLevel, 
-    const std::string& inMessage);
+  void logImpl(const std::string& logLevel, const std::string& file, 
+    const std::string& line, const std::string& inMessage);
 
 private:
   Logger();
@@ -115,6 +132,15 @@ private:
   LogWorker m_logWorker;
   boost::thread m_logWorkerThread;
 };
+
+//----------------------------------------------------------------------
+// MACROS
+//----------------------------------------------------------------------
+
+#define LOG_TRACE( message ) Logger::instance().log( Logger::TRACE_LEVEL, __FILE__, __LINE__, message )
+#define LOG_DEBUG( message ) Logger::instance().log( Logger::DEBUG_LEVEL, __FILE__, __LINE__, message )
+#define LOG_INFO( message ) Logger::instance().log( Logger::INFO_LEVEL, __FILE__, __LINE__, message )
+#define LOG_ERROR( message ) Logger::instance().log( Logger::ERROR_LEVEL, __FILE__, __LINE__, message )
 
 #endif // IM_LOGGER_H
 
