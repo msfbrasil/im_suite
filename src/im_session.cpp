@@ -48,13 +48,15 @@ void im_session::send_message(im_message_ptr im_message_ptr)
   }
 }
 
-bool im_session::is_connected() const
+const bool im_session::is_connected()
 {
+  boost::unique_lock<boost::mutex> scoped_lock( is_connected_mutex_ );
   return is_connected_;
 }
 
 void im_session::disconnect( bool close_socket )
 {
+  boost::unique_lock<boost::mutex> scoped_lock( is_connected_mutex_ );
   is_connected_ = false;
   if ( close_socket )
   {
@@ -76,7 +78,11 @@ std::string im_session::get_session_owner() const
 
 void im_session::process_message( im_message_ptr im_message_ptr )
 {
-  send_message( im_message_ptr );
+  boost::unique_lock<boost::mutex> scoped_lock( is_connected_mutex_ );
+  if ( is_connected_ )
+  {
+    send_message( im_message_ptr );
+  }
 }
 
 //----------------------------------------------------------------------

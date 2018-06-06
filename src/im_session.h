@@ -53,7 +53,7 @@ public:
   im_session(socket_ptr socket_ptr);
   void start(im_session_handler_callback_ptr callback_ptr);
   void send_message(im_message_ptr im_message_ptr);
-  bool is_connected() const;
+  const bool is_connected();
   void disconnect( bool close_socket );
   void set_session_owner( const std::string session_owner );
   std::string get_session_owner() const;
@@ -75,6 +75,7 @@ private:
   im_message_queue write_msgs_;
   boost::mutex write_msgs_mutex_;
   bool is_connected_;
+  boost::mutex is_connected_mutex_;
   std::string session_owner_;
 };
 
