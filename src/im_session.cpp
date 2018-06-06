@@ -143,8 +143,11 @@ void im_session::do_read_length()
           }
           else
           {
+            if ( is_connected_ )
+            {
+              callback_ptr_->on_error(self, ec);
+            }
             disconnect( true );
-            callback_ptr_->on_error(self, ec);
           }
         });
   }
@@ -173,8 +176,11 @@ void im_session::do_read_value()
           }
           else
           {
+            if ( is_connected_ )
+            {
+              callback_ptr_->on_error(self, ec);
+            }
             disconnect( true );
-            callback_ptr_->on_error(self, ec);
           }
         });
   }
@@ -208,8 +214,11 @@ void im_session::do_write()
           }
           else
           {
+            if ( is_connected_ )
+            {
+              callback_ptr_->on_error(self, ec);
+            }
             disconnect( true );
-            callback_ptr_->on_error(self, ec);
           }
         });
   }
